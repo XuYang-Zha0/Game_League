@@ -1,0 +1,14 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python-envs.terminal.autoActivationType": "shellStartup",
+  "terminal.integrated.env.osx": {
+    "VIRTUAL_ENV": "${workspaceFolder}/backend/.venv",
+    "PATH": "${workspaceFolder}/backend/.venv/bin:${env:PATH}"
+  },
+  "code-runner.runInTerminal": true,
+  "code-runner.executorMap": {
+    "python": "${workspaceFolder}/backend/.venv/bin/python"
+  }
+}

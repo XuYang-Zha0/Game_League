@@ -1,0 +1,22 @@
+# Game_League library and local version snapshot
+# Generated on: 2026-04-27
+
+[backend-python]
+python_interpreter=D:\test_envs\python.exe
+python==3.11.13
+fastapi==0.127.0
+uvicorn==0.40.0
+PyMySQL==1.1.2
+requests==2.32.5
+urllib3==2.6.2
+pandas==1.5.3
+
+[frontend-node]
+node==24.14.0
+npm==10.9.0
+vue==3.5.30
+vite==8.0.1
+@vitejs/plugin-vue==6.0.5
+
+[database]
+mysql_client==8.0.40
