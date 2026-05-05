@@ -34,6 +34,7 @@ pnpm-debug.log*
 backend/lol/lol_data/
 backend/valorant/vlr_cache/
 backend/valorant/vlr_realtime_data/
+backend/valorant/vlr_data/
 backend/valorant/image_cache/
 backend/valorant/.vlr_probe/
 
