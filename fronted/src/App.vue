@@ -1626,18 +1626,16 @@ const teamRankHeader = computed(() => {
 })
 const teamMetricHeaders = computed(() =>
   isLolGame.value
-    ? ['比赛数', '胜场', '数据源', '赛事体系', '场均击杀', '场均死亡', '场均助攻']
+    ? ['比赛数', '胜场', '场均击杀', '场均死亡', '场均助攻']
     : isValorantGame.value
-      ? ['胜场', '负场', '比赛数', '模型', '数据源', '赛事体系', '状态']
-    : ['地图数', 'K/D', 'Rating', '地图胜率', '场均击杀', '场均死亡', '首杀率'],
+      ? ['胜场', '负场', '比赛数', '胜率', '近期状态']
+    : ['地图数', 'K/D', 'Rating', '地图胜率', '场均击杀', '场均死亡'],
 )
 const teamMetricValue = (row, key) => {
   if (isLolGame.value) {
     const values = [
       row?.matchesPlayed ?? '-',
-      row?.points ?? row?.wins ?? '-',
-      'MySQL',
-      'LOL',
+      row?.wins ?? '-',
       row?.avgKill ?? '-',
       row?.avgDeath ?? '-',
       row?.avgAssist ?? '-',
@@ -1649,14 +1647,12 @@ const teamMetricValue = (row, key) => {
       row?.wins ?? '-',
       row?.losses ?? '-',
       row?.matchesPlayed ?? '-',
-      row?.model ?? (row?.rating && row.rating !== '-' ? '区域GPR' : '-'),
-      'MySQL',
-      row?.tier ?? '-',
+      row?.winRate ?? '-',
       row?.status ?? '-',
     ]
     return values[key] ?? '-'
   }
-  const values = [row?.mapNum, row?.kd, row?.rating, row?.mapWinRate, row?.avgKill, row?.avgDeath, row?.firstKillRate]
+  const values = [row?.mapNum, row?.kd, row?.rating, row?.mapWinRate, row?.avgKill, row?.avgDeath]
   return values[key] ?? '-'
 }
 
