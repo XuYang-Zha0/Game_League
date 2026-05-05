@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { fetchAiChatStream } from '../data/platformService'
+import { apiFetch } from '../data/apiConfig'
 
 const props = defineProps({
   gameId: { type: String, default: 'cs2' },
@@ -8,8 +9,6 @@ const props = defineProps({
   page: { type: String, default: 'home' },
   contextData: { type: Object, default: () => ({}) },
 })
-
-const API_BASE = '/api/ai'
 
 const isOpen = ref(false)
 const isConfigured = ref(false)
@@ -36,7 +35,7 @@ const welcomeText = computed(() => {
 
 const checkStatus = async () => {
   try {
-    const res = await fetch(`${API_BASE}/status`)
+    const res = await apiFetch('/api/ai/status')
     const json = await res.json()
     isConfigured.value = !!(json?.data?.configured)
   } catch {

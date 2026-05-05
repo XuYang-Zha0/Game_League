@@ -1,5 +1,6 @@
 import { normalizeByGame } from './adapters'
 import { gameCatalog, platformLayers, rawGameData } from './rawSources'
+import { apiUrl, apiFetch } from './apiConfig'
 
 const normalizedCache = Object.fromEntries(
   gameCatalog.map((game) => [game.id, normalizeByGame(game.id, rawGameData[game.id])]),
@@ -34,7 +35,7 @@ export const createExportPayload = (gameId, datasetOverride = null) => {
 export const fetchBackendDataset = async (gameId) => {
   if (!['cs2', 'lol', 'valorant'].includes(gameId)) return null
 
-  const response = await fetch(`/api/${gameId}/dataset`, {
+  const response = await apiFetch(`/api/${gameId}/dataset`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -54,7 +55,7 @@ export const fetchBackendDataset = async (gameId) => {
 export const fetchBackendLiveMatches = async (gameId) => {
   if (gameId !== 'cs2') return null
 
-  const response = await fetch('/api/cs2/live', {
+  const response = await apiFetch('/api/cs2/live', {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -88,7 +89,7 @@ export const fetchBackendScheduleMatches = async (gameId, options = {}) => {
   if (Number.isFinite(offset) && offset >= 0) params.set('offset', String(offset))
 
   const query = params.toString()
-  const response = await fetch(`/api/${gameId}/matches${query ? `?${query}` : ''}`, {
+  const response = await apiFetch(`/api/${gameId}/matches${query ? `?${query}` : ''}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -108,7 +109,7 @@ export const fetchBackendScheduleMatches = async (gameId, options = {}) => {
 export const fetchBackendPlayerDetail = async (gameId, playerId) => {
   if (!['cs2', 'lol', 'valorant'].includes(gameId) || !playerId) return null
 
-  const response = await fetch(`/api/${gameId}/player/${encodeURIComponent(playerId)}`, {
+  const response = await apiFetch(`/api/${gameId}/player/${encodeURIComponent(playerId)}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -128,7 +129,7 @@ export const fetchBackendPlayerDetail = async (gameId, playerId) => {
 export const fetchBackendTeamDetail = async (gameId, teamKey) => {
   if (!['cs2', 'lol', 'valorant'].includes(gameId) || !teamKey) return null
 
-  const response = await fetch(`/api/${gameId}/team/${encodeURIComponent(teamKey)}`, {
+  const response = await apiFetch(`/api/${gameId}/team/${encodeURIComponent(teamKey)}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -146,7 +147,7 @@ export const fetchBackendTeamDetail = async (gameId, teamKey) => {
 }
 
 export const fetchAiChat = async (payload) => {
-  const response = await fetch('/api/ai/chat', {
+  const response = await apiFetch('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -173,7 +174,7 @@ export const fetchAiChat = async (payload) => {
 }
 
 export const fetchAiStatus = async () => {
-  const response = await fetch('/api/ai/status', {
+  const response = await apiFetch('/api/ai/status', {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -187,7 +188,7 @@ export const fetchAiStatus = async () => {
 }
 
 export const fetchAiWelcome = async (gameId) => {
-  const response = await fetch(`/api/ai/welcome/${encodeURIComponent(gameId || 'cs2')}`, {
+  const response = await apiFetch(`/api/ai/welcome/${encodeURIComponent(gameId || 'cs2')}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
@@ -203,7 +204,7 @@ export const fetchAiWelcome = async (gameId) => {
 export const fetchAiChatStream = (payload, onChunk, onDone, onError) => {
   const controller = new AbortController()
 
-  fetch('/api/ai/chat/stream', {
+  apiFetch('/api/ai/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -264,7 +265,7 @@ export const fetchAiChatStream = (payload, onChunk, onDone, onError) => {
 export const fetchBackendMatchDetail = async (gameId, matchId) => {
   if (!['cs2', 'lol', 'valorant'].includes(gameId) || !matchId) return null
 
-  const response = await fetch(`/api/${gameId}/match/${encodeURIComponent(matchId)}`, {
+  const response = await apiFetch(`/api/${gameId}/match/${encodeURIComponent(matchId)}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   })
