@@ -13,32 +13,63 @@ import {
 } from './data/platformService'
 import SchedulePage from './components/SchedulePage.vue'
 import MatchDetailPage from './components/MatchDetailPage.vue'
+import AiChatWidget from './components/AiChatWidget.vue'
 
 const gameCatalog = getGameCatalog()
 const integratedDataset = getIntegratedDataset()
+const emptyBackendDataset = (gameId, gameName, gameSubtitle, color) => ({
+  gameId,
+  gameName,
+  gameSubtitle,
+  color,
+  updatedAt: '',
+  matches: [],
+  tournaments: [],
+  leaderboard: [],
+  teams: [],
+  players: [],
+  metrics: [],
+  analysisOutput: [],
+  filters: { regions: [], tiers: [] },
+  analysis: {
+    summary: '',
+    turningPoints: [],
+    teamInsight: '',
+    playerInsight: '',
+  },
+})
+const staticDatasetFallback = (gameId, gameName, gameSubtitle, color) => {
+  const base = integratedDataset?.[gameId]
+  if (base && typeof base === 'object') {
+    return {
+      gameId,
+      gameName: base.gameName || gameName,
+      gameSubtitle: base.gameSubtitle || gameSubtitle,
+      color: base.color || color,
+      updatedAt: base.updatedAt || '',
+      matches: Array.isArray(base.matches) ? base.matches : [],
+      tournaments: Array.isArray(base.tournaments) ? base.tournaments : [],
+      leaderboard: Array.isArray(base.leaderboard) ? base.leaderboard : [],
+      teams: Array.isArray(base.teams) ? base.teams : [],
+      players: Array.isArray(base.players) ? base.players : [],
+      metrics: Array.isArray(base.metrics) ? base.metrics : [],
+      analysisOutput: Array.isArray(base.analysisOutput) ? base.analysisOutput : [],
+      filters: base.filters || { regions: [], tiers: [] },
+      analysis: base.analysis || {
+        summary: '',
+        turningPoints: [],
+        teamInsight: '',
+        playerInsight: '',
+      },
+    }
+  }
+  return emptyBackendDataset(gameId, gameName, gameSubtitle, color)
+}
 const initialDataset = {
   ...integratedDataset,
-  cs2: {
-    gameId: 'cs2',
-    gameName: 'CS2',
-    gameSubtitle: 'Counter-Strike 2',
-    color: '#1f6feb',
-    updatedAt: '',
-    matches: [],
-    tournaments: [],
-    leaderboard: [],
-    teams: [],
-    players: [],
-    metrics: [],
-    analysisOutput: [],
-    filters: { regions: [], tiers: [] },
-    analysis: {
-      summary: '',
-      turningPoints: [],
-      teamInsight: '',
-      playerInsight: '',
-    },
-  },
+  cs2: staticDatasetFallback('cs2', 'CS2', 'Counter-Strike 2', '#1f6feb'),
+  valorant: staticDatasetFallback('valorant', '无畏契约', 'VALORANT', '#e63946'),
+  lol: staticDatasetFallback('lol', '英雄联盟', 'League of Legends', '#0f8b8d'),
 }
 const fallbackDataset = {
   color: '#1f6feb',
@@ -78,6 +109,8 @@ const selectedTeamKey = ref('')
 const selectedMatchId = ref('')
 const isGameMenuOpen = ref(false)
 const switchBlockRef = ref(null)
+const aiChatWidgetRef = ref(null)
+const lastAutoAnalyzedMatchId = ref('')
 
 const searchKeyword = ref('')
 
@@ -92,6 +125,7 @@ const matchDetailError = ref('')
 const matchDetail = ref(null)
 const teamDetailTab = ref('data')
 const teamRankMode = ref('valve')
+const lolRegionFilter = ref('all')
 const scheduleViewMode = ref('fixture')
 const scheduleDateFilter = ref('')
 const scheduleTierFilter = ref('b_or_above')
@@ -108,16 +142,48 @@ const scheduleTierThreshold = {
 }
 const scheduleDateMin = '2023-01-01'
 const SCHEDULE_LIVE_POLL_INTERVAL_MS = 7000
+const BACKEND_DATASET_REFRESH_INTERVAL_MS = 30000
+const SCHEDULE_PAGE_SIZE = 20
 const TOURNAMENT_PAGE_SIZE = 20
+const PLAYER_PAGE_SIZE = 120
 const tournamentVisibleCount = ref(TOURNAMENT_PAGE_SIZE)
+const playerVisibleCount = ref(PLAYER_PAGE_SIZE)
 let scheduleLivePollTimer = null
 let scheduleLivePollInFlight = false
+let backendDatasetRefreshTimer = null
+let scheduleRowsRequestSeq = 0
+const backendDatasetRequesting = new Set()
 
 const activeDataset = computed(
   () => datasetByGame.value[selectedGameId.value] || datasetByGame.value[gameCatalog[0]?.id] || fallbackDataset,
 )
 const activeVisual = computed(() => gameVisualMap[selectedGameId.value] || gameVisualMap.cs2)
 const activeGameName = computed(() => gameCatalog.find((item) => item.id === selectedGameId.value)?.name || 'CS2')
+const isLolGame = computed(() => selectedGameId.value === 'lol')
+const isValorantGame = computed(() => selectedGameId.value === 'valorant')
+const isRegionRankGame = computed(() => isLolGame.value || isValorantGame.value)
+
+const aiContextData = computed(() => {
+  const dataset = activeDataset.value || fallbackDataset
+  const ctx = {
+    leaderboard: (dataset.leaderboard || []).slice(0, 10),
+    tournaments: (dataset.tournaments || []).slice(0, 5),
+    matches: (dataset.matches || []).slice(0, 10),
+    teams: (dataset.teams || []).slice(0, 10),
+    players: (dataset.players || []).slice(0, 10),
+    analysis: dataset.analysis || {},
+  }
+  if (currentPage.value === 'match-detail' && matchDetail.value) {
+    ctx.currentMatch = matchDetail.value
+  }
+  if (currentPage.value === 'player-detail' && playerDetail.value) {
+    ctx.currentPlayer = playerDetail.value
+  }
+  if (currentPage.value === 'team-detail' && teamDetail.value) {
+    ctx.currentTeam = teamDetail.value
+  }
+  return ctx
+})
 
 const navItems = [
   { page: 'home', label: '首页' },
@@ -127,9 +193,17 @@ const navItems = [
   { page: 'players', label: '选手' },
 ]
 
-const topHonors = computed(() => (playerDetail.value?.honors || []).slice(0, 10))
+const topHonors = computed(() => (playerDetail.value?.honors || []).slice(0, 40))
+const lolAdvancedStats = computed(() => playerDetail.value?.advancedStats || [])
+const lolChampionStats = computed(() => playerDetail.value?.championStats || [])
+const lolCareerTeams = computed(() => playerDetail.value?.careerTeams || [])
+const lolCareerProfile = computed(() => playerDetail.value?.careerProfile || {})
+const lolRecentForm = computed(() => playerDetail.value?.recentForm || {})
 const teamMembers = computed(() => {
-  const rows = (teamDetail.value?.members || []).slice(0, 5)
+  const rows = (teamDetail.value?.members || []).slice(0, 5).map((row) => ({
+    ...row,
+    position: row.position || row.role || '-',
+  }))
   while (rows.length < 5) {
     rows.push({
       playerId: `placeholder-${rows.length + 1}`,
@@ -152,6 +226,27 @@ const teamDataCards = computed(() => {
     const text = String(v ?? '').trim()
     return text || '-'
   }
+  if (isLolGame.value) {
+    return [
+      { label: '世界排名', value: from(rank.globalRank, stats.globalRank) },
+      { label: '比赛数', value: from(stats.matchesPlayed, '-') },
+      { label: '胜场', value: from(stats.wins, '-') },
+      { label: '整体胜率', value: from(stats.winRate, '-') },
+    ]
+  }
+  if (isValorantGame.value) {
+    return [
+      { label: '赛区排名', value: from(rank.regionRank, stats.regionRank) },
+      { label: '全局参考', value: from(rank.globalRank, stats.globalRank) },
+      { label: '评分', value: from(stats.rankScore, rank.score) },
+      { label: '比赛数', value: from(stats.matchesPlayed, '-') },
+      { label: '胜场', value: from(stats.wins, '-') },
+      { label: '整体胜率', value: from(stats.winRate, '-') },
+      { label: '评分模型', value: from(stats.model, '-') },
+      { label: '近期状态', value: from(stats.status, '-') },
+    ]
+  }
+
   return [
     { label: '世界排名', value: from(rank.globalRank, stats.globalRank) },
     { label: 'Valve 排名', value: from(rank.valveRank, stats.valveRank) },
@@ -189,28 +284,78 @@ const equipmentLabel = (value) => {
   return equipmentLabelMap[key] || value || '-'
 }
 
+const brokenImageMap = ref({})
+
+const imageKeysFor = (value) => {
+  const raw = String(value || '').trim()
+  if (!raw) return []
+  const keys = [raw]
+  if (typeof window !== 'undefined') {
+    try {
+      keys.push(new URL(raw, window.location.href).href)
+    } catch (e) {
+      // Keep the raw key when URL normalization is unavailable.
+    }
+  }
+  return [...new Set(keys)]
+}
+
+const imageKeysFromError = (value) => {
+  if (typeof value === 'string') return imageKeysFor(value)
+  const target = value?.currentTarget || value?.target
+  const keys = [
+    ...imageKeysFor(target?.getAttribute?.('src')),
+    ...imageKeysFor(target?.currentSrc),
+    ...imageKeysFor(target?.src),
+  ]
+  return [...new Set(keys)]
+}
+
+const isBrokenImage = (value) => imageKeysFor(value).some((key) => brokenImageMap.value[key])
+
+const markBrokenImage = (value) => {
+  const keys = imageKeysFromError(value)
+  if (!keys.length) return
+  const next = { ...brokenImageMap.value }
+  let changed = false
+  for (const key of keys) {
+    if (!next[key]) {
+      next[key] = true
+      changed = true
+    }
+  }
+  if (changed) brokenImageMap.value = next
+}
+
+const usableImage = (value) => {
+  const src = String(value || '').trim()
+  if (!src || isBrokenImage(src)) return ''
+  return src
+}
+
 const resolveEquipmentLogo = (row) =>
-  String(
+  usableImage(
     row?.logo ||
       row?.logo_url ||
       row?.icon ||
       row?.image ||
       row?.img ||
       '',
-  ).trim()
+  )
 
 const resolveTeammateAvatar = (row) =>
-  String(
+  usableImage(
     row?.portrait ||
       row?.half_portrait ||
       row?.avatar ||
       row?.country_logo ||
       '',
-  ).trim()
+  )
 
 const sanitizeLogo = (value) => {
   const src = String(value || '').trim()
   if (!src || src.endsWith('/null.png')) return ''
+  if (isBrokenImage(src)) return ''
   return src
 }
 
@@ -238,6 +383,7 @@ const isDoubleLogoShape = (w, h) => {
 const ensureCroppedLogo = (logo, teamName) => {
   const src = sanitizeLogo(logo)
   if (!src) return ''
+  if (isValorantGame.value) return src
   const mode = isVitalityName(teamName) ? 'right' : 'left'
   const key = `${src}::${mode}`
   if (croppedLogoMap.value[key]) return croppedLogoMap.value[key]
@@ -405,6 +551,8 @@ const scheduleDateMax = computed(() => localDateText(new Date()))
 const scheduleRowsState = ref('idle')
 const scheduleRowsError = ref('')
 const scheduleRowsFromDb = ref([])
+const scheduleRowsHasMore = ref(false)
+const scheduleRowsLoadingMore = ref(false)
 
 const normalizeDateFilter = (value) => {
   const text = String(value || '').trim()
@@ -539,6 +687,8 @@ const normalizeTeamText = (value) => String(value || '').trim().toLowerCase()
 
 const isFinishedMatch = (row, nowMs = Date.now()) => {
   const statusCode = toIntOrNull(row?.statusCode)
+  const noteText = String(row?.note || row?.rawNote || '').trim()
+  const hasDetailNote = noteText && noteText !== '-'
   if (statusCode === 2) return true
   if (statusCode === 1) return false
 
@@ -547,17 +697,18 @@ const isFinishedMatch = (row, nowMs = Date.now()) => {
 
   if (statusCode === 0) {
     if (scorePair && (scorePair.left > 0 || scorePair.right > 0)) return true
-    if (Number.isFinite(timeMs) && timeMs < nowMs - 2 * 60 * 60 * 1000) return true
+    if (hasDetailNote) return true
+    if (Number.isFinite(timeMs) && timeMs < nowMs - 12 * 60 * 60 * 1000) return true
     return false
   }
 
   const winner = String(row?.winner || '').trim()
   if (winner && winner !== '-') return true
 
-  if (!scorePair) return false
-
-  if (!Number.isFinite(timeMs)) return true
-  return timeMs < nowMs - 2 * 60 * 60 * 1000
+  if (scorePair && (scorePair.left > 0 || scorePair.right > 0)) return true
+  if (hasDetailNote) return true
+  if (!scorePair && Number.isFinite(timeMs) && timeMs < nowMs - 2 * 60 * 60 * 1000 && statusCode === 2) return true
+  return false
 }
 
 const formatScheduleScore = (row) => {
@@ -629,6 +780,39 @@ const displayValue = (value) => {
 
 const summaryCards = computed(() => {
   const summary = playerDetail.value?.summary || {}
+  if (isLolGame.value) {
+    return [
+      {
+        key: 'games_played',
+        label: '比赛局数',
+        value: displayValue(summary.games_played || playerDetail.value?.basic?.gamesPlayed),
+        percent: 100,
+        hint: `KDA ${displayValue(summary.kda || playerDetail.value?.basic?.kda || playerDetail.value?.basic?.rating)}`,
+      },
+      {
+        key: 'kda',
+        label: 'KDA',
+        value: displayValue(summary.kda || playerDetail.value?.basic?.kda || playerDetail.value?.basic?.rating),
+        percent: clamp(toNumber(summary.kda || playerDetail.value?.basic?.kda || playerDetail.value?.basic?.rating) * 12, 0, 100),
+        hint: `${displayValue(summary.kills)} / ${displayValue(summary.deaths)} / ${displayValue(summary.assists)}`,
+      },
+      {
+        key: 'avg_cs',
+        label: '场均补刀',
+        value: displayValue(summary.avgCs),
+        percent: clamp(toNumber(summary.avgCs) / 4, 0, 100),
+        hint: '来自 lol_game_player_stats',
+      },
+      {
+        key: 'kills',
+        label: '总击杀',
+        value: displayValue(summary.kills),
+        percent: clamp(toNumber(summary.kills), 0, 100),
+        hint: `助攻 ${displayValue(summary.assists)}`,
+      },
+    ]
+  }
+
   const mapTotal = toNumber(summary.map_total)
   const matchTotal = toNumber(summary.match_total)
   const mapWinRate = clamp(toNumber(summary.map_win_rate), 0, 100)
@@ -667,9 +851,17 @@ const summaryCards = computed(() => {
   ]
 })
 
-const abilityMetricOrder = ['rating', 'adr', 'kast', 'impact', 'kpr', 'dpr', 'swing']
+const abilityMetricOrder = computed(() =>
+  isLolGame.value
+    ? ['wr', 'kda', 'kp', 'kill%', 'cs%', 'dth%', 'pool', 'avg kda']
+    : isValorantGame.value
+      ? ['rating', 'adr', 'kast', 'impact', 'kpr', 'fdpr', 'swing', 'hs%']
+      : ['rating', 'adr', 'kast', 'impact', 'kpr', 'dpr', 'swing'],
+)
 const abilityMetricLabel = (metric) => String(metric || '').trim().toUpperCase() || '-'
 const abilityMetricKey = (metric) => String(metric || '').trim().toLowerCase()
+const metricFlagEnabled = (value) =>
+  ['1', 'true', 'yes', 'y', 'on'].includes(String(value ?? '').trim().toLowerCase())
 
 const normalizeMetricValue = (value) => {
   const text = String(value ?? '').trim()
@@ -696,13 +888,13 @@ const abilityMetricRatio = (row) => {
     const min = Math.min(...candidates)
     const max = Math.max(...candidates)
     if (max > min) {
-      const lowerBetter = String(row?.lower_better ?? '').trim() === '1'
+      const lowerBetter = metricFlagEnabled(row?.lower_better)
       ratio = lowerBetter ? (max - value) / (max - min) : (value - min) / (max - min)
     }
   } else {
     const avg = normalizeMetricValue(row?.avg_value)
     if (Number.isFinite(avg) && avg !== 0) {
-      const lowerBetter = String(row?.lower_better ?? '').trim() === '1'
+      const lowerBetter = metricFlagEnabled(row?.lower_better)
       ratio = lowerBetter ? avg / Math.max(value, 1e-6) : value / avg
       ratio = ratio / 2
     }
@@ -724,7 +916,7 @@ const orderedAbilityMetrics = computed(() => {
   }
 
   const ordered = []
-  for (const key of abilityMetricOrder) {
+  for (const key of abilityMetricOrder.value) {
     if (byMetric.has(key)) {
       ordered.push(byMetric.get(key))
       byMetric.delete(key)
@@ -735,7 +927,7 @@ const orderedAbilityMetrics = computed(() => {
 })
 
 const abilityMetricsTop = computed(() => orderedAbilityMetrics.value.slice(0, 4))
-const abilityMetricsBottom = computed(() => orderedAbilityMetrics.value.slice(4, 7))
+const abilityMetricsBottom = computed(() => orderedAbilityMetrics.value.slice(4, 8))
 const animatedAbilityRatioMap = ref({})
 
 const metricDecimals = (value) => {
@@ -770,11 +962,12 @@ const metricDeltaInfo = (row) => {
   const abs = Math.abs(delta)
   const suffix = metricHasPercent(row) ? '%' : ''
   const digits = Math.max(metricDecimals(row?.value), metricDecimals(row?.avg_value), 1)
+  const lowerBetter = metricFlagEnabled(row?.lower_better)
   if (delta > 0) {
-    return { text: `高于平均 +${abs.toFixed(digits)}${suffix}`, cls: 'up' }
+    return { text: `高于平均 +${abs.toFixed(digits)}${suffix}`, cls: lowerBetter ? 'down' : 'up' }
   }
   if (delta < 0) {
-    return { text: `低于平均 -${abs.toFixed(digits)}${suffix}`, cls: 'down' }
+    return { text: `低于平均 -${abs.toFixed(digits)}${suffix}`, cls: lowerBetter ? 'up' : 'down' }
   }
   return { text: `与平均持平 0${suffix}`, cls: 'neutral' }
 }
@@ -1060,7 +1253,7 @@ const handleTablePointerLeaveWindow = () => {
 const filteredRows = computed(() => {
   const dataset = activeDataset.value
   const schedule =
-    selectedGameId.value === 'cs2' && currentPage.value === 'schedule'
+    backendDatasetGameIds.has(selectedGameId.value) && currentPage.value === 'schedule'
       ? [...(scheduleRowsFromDb.value || [])]
       : (dataset.matches || []).filter((row) => passScheduleTierFilter(row))
   const tournaments = (dataset.tournaments || []).filter((row) => passScheduleTierFilter(row))
@@ -1071,6 +1264,80 @@ const filteredRows = computed(() => {
     players: dataset.players || [],
   }
 })
+
+const regionValue = (row) => String(row?.region || row?.area || row?.leagueRegion || '-').trim() || '-'
+const regionSortOrder = [
+  'CN',
+  'Pacific',
+  'EMEA',
+  'Americas',
+  'Game Changers',
+  'LCK',
+  'LPL',
+  'LEC',
+  'LTA',
+  'LCP',
+  'VCS',
+  'PCS',
+  'CBLOL',
+  'LLA',
+  'International',
+  'Unknown',
+  '-',
+]
+const regionSortRank = (region) => {
+  const idx = regionSortOrder.indexOf(region)
+  return idx >= 0 ? idx : regionSortOrder.length
+}
+
+const lolRegionOptions = computed(() => {
+  const dataset = activeDataset.value || {}
+  const regions = new Set()
+  for (const collection of [dataset.tournaments, dataset.teams, dataset.players]) {
+    for (const row of collection || []) {
+      const region = regionValue(row)
+      if (region && region !== '-') regions.add(region)
+    }
+  }
+  const items = [...regions].sort((a, b) => {
+    const ar = regionSortRank(a)
+    const br = regionSortRank(b)
+    if (ar !== br) return ar - br
+    return a.localeCompare(b)
+  })
+  return [{ value: 'all', label: '全部赛区' }, ...items.map((region) => ({ value: region, label: region }))]
+})
+
+const passLolRegionFilter = (row) => {
+  if (!isRegionRankGame.value || lolRegionFilter.value === 'all') return true
+  return regionValue(row) === lolRegionFilter.value
+}
+
+const groupRowsByRegion = (rows, rankKey = 'displayRank') => {
+  const groups = new Map()
+  for (const row of rows || []) {
+    const region = regionValue(row)
+    if (!groups.has(region)) groups.set(region, [])
+    groups.get(region).push(row)
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      const ar = regionSortRank(a)
+      const br = regionSortRank(b)
+      if (ar !== br) return ar - br
+      return a.localeCompare(b)
+    })
+    .map(([region, rowsInRegion]) => ({
+      region,
+      rows: rowsInRegion.map((row, idx) => ({ ...row, [rankKey]: idx + 1 })),
+    }))
+}
+
+const lolTournamentRows = computed(() =>
+  (filteredRows.value.tournaments || []).filter((row) => passLolRegionFilter(row)),
+)
+
+const lolTournamentGroups = computed(() => groupRowsByRegion(lolTournamentRows.value))
 
 const visibleTournamentRows = computed(() =>
   (filteredRows.value.tournaments || []).slice(0, tournamentVisibleCount.value),
@@ -1100,9 +1367,6 @@ const handleTournamentScroll = (event) => {
 
 const filteredScheduleRows = computed(() => {
   const rows = [...(filteredRows.value.schedule || [])]
-  if (selectedGameId.value === 'cs2' && currentPage.value === 'schedule') {
-    return rows
-  }
 
   const nowMs = Date.now()
   const dateFilter = normalizeDateFilter(scheduleDateFilter.value)
@@ -1166,9 +1430,14 @@ const teamRowsWithRanking = computed(() => {
   return rows
 })
 
+const lolTeamRows = computed(() => teamRowsWithRanking.value.filter((row) => passLolRegionFilter(row)))
+const lolTeamGroups = computed(() => groupRowsByRegion(lolTeamRows.value, 'regionRank'))
+
 const playerRankScoreValue = (row) => {
   const score = toNumber(row?.rankScore)
   if (score > 0) return score
+  const kda = toNumber(row?.kda)
+  if (kda > 0) return kda
   return toNumber(row?.rating)
 }
 
@@ -1194,6 +1463,38 @@ const playerRowsWithRank = computed(() =>
     displayRank: idx + 1,
   })),
 )
+const visiblePlayerRowsWithRank = computed(() =>
+  playerRowsWithRank.value.slice(0, playerVisibleCount.value),
+)
+
+const lolPlayerRows = computed(() =>
+  sortPlayersByRankScore(filteredRows.value.players || []).filter((row) => passLolRegionFilter(row)),
+)
+const visibleLolPlayerRows = computed(() => lolPlayerRows.value.slice(0, playerVisibleCount.value))
+const lolPlayerGroups = computed(() => groupRowsByRegion(visibleLolPlayerRows.value))
+const playerTotalCount = computed(() => (isRegionRankGame.value ? lolPlayerRows.value.length : playerRowsWithRank.value.length))
+const visiblePlayerCount = computed(() =>
+  Math.min(playerVisibleCount.value, playerTotalCount.value),
+)
+const hasMorePlayerRows = computed(() => visiblePlayerCount.value < playerTotalCount.value)
+
+const resetPlayerVisibleRows = () => {
+  playerVisibleCount.value = PLAYER_PAGE_SIZE
+}
+
+const loadMorePlayerRows = () => {
+  if (!hasMorePlayerRows.value) return
+  playerVisibleCount.value += PLAYER_PAGE_SIZE
+}
+
+const handlePlayerScroll = (event) => {
+  const container = event.currentTarget
+  if (!(container instanceof HTMLElement)) return
+  const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 24
+  if (nearBottom) {
+    loadMorePlayerRows()
+  }
+}
 
 const homeSearchText = computed(() => String(searchKeyword.value || '').trim())
 
@@ -1240,11 +1541,60 @@ const openSearchResult = (kind, row) => {
   }
 }
 
+const normalizeRegionKey = (value) => String(value || '').trim().toLowerCase()
+const isCnValorantPlayer = (row) => normalizeRegionKey(regionValue(row)) === 'cn'
+const isPacificValorantPlayer = (row) => {
+  const region = normalizeRegionKey(regionValue(row))
+  return ['pacific', 'apac', 'asia', 'sea', 'kr', 'jp', 'id', 'ph', 'th', 'vn', 'sg', 'my', 'mn', 'oce'].some(
+    (key) => region === key || region.includes(key),
+  )
+}
+
+const pushUniquePlayers = (target, rows, limit) => {
+  const seen = new Set(target.map((row) => String(row?.playerId || row?.name || '').trim()).filter(Boolean))
+  for (const row of rows) {
+    if (target.length >= limit) break
+    const key = String(row?.playerId || row?.name || '').trim()
+    if (!key || seen.has(key)) continue
+    target.push(row)
+    seen.add(key)
+  }
+}
+
+const valorantHomePlayerSample = (rows) => {
+  const selected = []
+  const cnRows = rows.filter(isCnValorantPlayer)
+  const pacificRows = rows.filter((row) => !isCnValorantPlayer(row) && isPacificValorantPlayer(row))
+  const otherRows = rows.filter((row) => {
+    const region = normalizeRegionKey(regionValue(row))
+    return region && region !== '-' && !isCnValorantPlayer(row) && !isPacificValorantPlayer(row)
+  })
+
+  pushUniquePlayers(selected, cnRows, 3)
+  pushUniquePlayers(selected, pacificRows, 5)
+  pushUniquePlayers(selected, otherRows, 6)
+  pushUniquePlayers(selected, [...cnRows, ...pacificRows], 6)
+  pushUniquePlayers(selected, rows, 6)
+  return selected
+}
+
 const homeTopPlayers = computed(() => {
-  return sortPlayersByRankScore(activeDataset.value?.players || []).slice(0, 5)
+  const rows = sortPlayersByRankScore(activeDataset.value?.players || [])
+  if (isValorantGame.value) {
+    return valorantHomePlayerSample(rows)
+  }
+  return rows.slice(0, 5)
 })
 
-const homeTopRanking = computed(() => (activeDataset.value?.leaderboard || []).slice(0, 5))
+const homeTopRanking = computed(() => {
+  const rows = activeDataset.value?.leaderboard || []
+  if (isValorantGame.value) {
+    return groupRowsByRegion(rows, 'regionRank')
+      .flatMap((group) => group.rows.slice(0, 1))
+      .slice(0, 5)
+  }
+  return rows.slice(0, 5)
+})
 const homeMatchCount = computed(() => (activeDataset.value?.matches || []).length)
 const homeHasData = computed(() => homeTopRanking.value.length > 0 || homeTopPlayers.value.length > 0)
 const homeStatsCards = computed(() => [
@@ -1259,6 +1609,55 @@ const homeFeaturedTournaments = computed(() => (activeDataset.value?.tournaments
 const openPlayerDetail = (row) => {
   if (!row?.playerId) return
   navigateTo('player-detail', { playerId: row.playerId })
+}
+
+const playerPrimaryMetricLabel = computed(() => (isLolGame.value ? 'KDA' : 'Rating'))
+const playerSecondaryMetricLabel = computed(() => (isLolGame.value ? '场次' : 'Impact'))
+const playerPrimaryMetricValue = (row) =>
+  row?.primaryMetricValue || row?.kda || row?.rating || '-'
+const playerSecondaryMetricValue = (row) =>
+  row?.secondaryMetricValue || row?.gamesPlayed || row?.impact || '-'
+const playerSearchMetricText = (row) =>
+  `${playerPrimaryMetricLabel.value} ${playerPrimaryMetricValue(row)}`
+
+const teamRankHeader = computed(() => {
+  if (isLolGame.value || isValorantGame.value) return '排名'
+  return teamRankMode.value === 'valve' ? 'Valve排名' : 'HLTV排名'
+})
+const teamMetricHeaders = computed(() =>
+  isLolGame.value
+    ? ['比赛数', '胜场', '数据源', '赛事体系', '场均击杀', '场均死亡', '场均助攻']
+    : isValorantGame.value
+      ? ['胜场', '负场', '比赛数', '模型', '数据源', '赛事体系', '状态']
+    : ['地图数', 'K/D', 'Rating', '地图胜率', '场均击杀', '场均死亡', '首杀率'],
+)
+const teamMetricValue = (row, key) => {
+  if (isLolGame.value) {
+    const values = [
+      row?.matchesPlayed ?? '-',
+      row?.points ?? row?.wins ?? '-',
+      'MySQL',
+      'LOL',
+      row?.avgKill ?? '-',
+      row?.avgDeath ?? '-',
+      row?.avgAssist ?? '-',
+    ]
+    return values[key] ?? '-'
+  }
+  if (isValorantGame.value) {
+    const values = [
+      row?.wins ?? '-',
+      row?.losses ?? '-',
+      row?.matchesPlayed ?? '-',
+      row?.model ?? (row?.rating && row.rating !== '-' ? '区域GPR' : '-'),
+      'MySQL',
+      row?.tier ?? '-',
+      row?.status ?? '-',
+    ]
+    return values[key] ?? '-'
+  }
+  const values = [row?.mapNum, row?.kd, row?.rating, row?.mapWinRate, row?.avgKill, row?.avgDeath, row?.firstKillRate]
+  return values[key] ?? '-'
 }
 
 const openTeamDetail = (row) => {
@@ -1296,40 +1695,161 @@ const openPlayerCardTeamDetail = () => {
   navigateTo('team-detail', { teamKey })
 }
 
-const loadBackendCs2Dataset = async () => {
+const backendDatasetGameIds = new Set(['cs2', 'lol', 'valorant'])
+const hasDatasetContent = (dataset) => {
+  if (!dataset || typeof dataset !== 'object') return false
+  return (
+    (Array.isArray(dataset.leaderboard) && dataset.leaderboard.length > 0) ||
+    (Array.isArray(dataset.matches) && dataset.matches.length > 0) ||
+    (Array.isArray(dataset.tournaments) && dataset.tournaments.length > 0) ||
+    (Array.isArray(dataset.teams) && dataset.teams.length > 0) ||
+    (Array.isArray(dataset.players) && dataset.players.length > 0)
+  )
+}
+
+const loadBackendDatasetForGame = async (gameId = selectedGameId.value, options = {}) => {
+  if (!backendDatasetGameIds.has(gameId)) return
+  const force = Boolean(options?.force)
+  if (!force && backendDatasetRequesting.has(gameId)) return
+  backendDatasetRequesting.add(gameId)
   try {
-    const dataset = await fetchBackendDataset('cs2')
+    const dataset = await fetchBackendDataset(gameId)
     if (dataset) {
-      datasetByGame.value = { ...datasetByGame.value, cs2: dataset }
+      const prev = datasetByGame.value?.[gameId]
+      const nextHasData = hasDatasetContent(dataset)
+      const prevHasData = hasDatasetContent(prev)
+      if (!nextHasData && prevHasData) {
+        console.warn(`[${gameId}-backend-sync-skipped-empty] keep previous non-empty dataset`)
+        return
+      }
+      datasetByGame.value = { ...datasetByGame.value, [gameId]: dataset }
     }
   } catch (error) {
-    console.error('[cs2-backend-sync-failed]', error)
+    console.error(`[${gameId}-backend-sync-failed]`, error)
+  } finally {
+    backendDatasetRequesting.delete(gameId)
   }
 }
 
-const loadBackendScheduleRows = async () => {
-  if (selectedGameId.value !== 'cs2' || currentPage.value !== 'schedule') {
+const stopBackendDatasetRefresh = () => {
+  if (backendDatasetRefreshTimer) {
+    clearInterval(backendDatasetRefreshTimer)
+    backendDatasetRefreshTimer = null
+  }
+}
+
+const startBackendDatasetRefresh = () => {
+  stopBackendDatasetRefresh()
+  backendDatasetRefreshTimer = setInterval(() => {
+    loadBackendDatasetForGame('cs2')
+    loadBackendDatasetForGame('lol')
+    loadBackendDatasetForGame('valorant')
+  }, BACKEND_DATASET_REFRESH_INTERVAL_MS)
+}
+
+const ensureBackendDatasetReady = () => {
+  if (!backendDatasetGameIds.has(selectedGameId.value)) return
+  const page = currentPage.value
+  if (!['home', 'tournaments', 'teams', 'players', 'schedule'].includes(page)) return
+  const dataset = datasetByGame.value?.[selectedGameId.value] || {}
+  const hasAnyData =
+    (Array.isArray(dataset?.leaderboard) && dataset.leaderboard.length > 0) ||
+    (Array.isArray(dataset?.matches) && dataset.matches.length > 0) ||
+    (Array.isArray(dataset?.tournaments) && dataset.tournaments.length > 0) ||
+    (Array.isArray(dataset?.teams) && dataset.teams.length > 0) ||
+    (Array.isArray(dataset?.players) && dataset.players.length > 0)
+  if (!hasAnyData) {
+    loadBackendDatasetForGame(selectedGameId.value, { force: true })
+  }
+}
+
+const loadBackendScheduleRows = async (options = {}) => {
+  const append = Boolean(options?.append)
+  if (!backendDatasetGameIds.has(selectedGameId.value) || currentPage.value !== 'schedule') {
+    scheduleRowsRequestSeq += 1
     scheduleRowsState.value = 'idle'
     scheduleRowsError.value = ''
+    scheduleRowsHasMore.value = false
+    scheduleRowsLoadingMore.value = false
+    scheduleRowsFromDb.value = []
     return
   }
 
-  scheduleRowsState.value = 'loading'
-  scheduleRowsError.value = ''
+  if (append) {
+    if (
+      scheduleRowsState.value === 'loading' ||
+      scheduleRowsLoadingMore.value ||
+      !scheduleRowsHasMore.value
+    ) {
+      return
+    }
+    scheduleRowsLoadingMore.value = true
+  } else {
+    scheduleRowsState.value = 'loading'
+    scheduleRowsError.value = ''
+    scheduleRowsHasMore.value = false
+    scheduleRowsLoadingMore.value = false
+  }
+
+  const currentRows = Array.isArray(scheduleRowsFromDb.value) ? scheduleRowsFromDb.value : []
+  const requestOffset = append ? currentRows.length : 0
+  const requestSeq = ++scheduleRowsRequestSeq
+  const requestGameId = selectedGameId.value
+  const requestView = scheduleViewMode.value
+  const requestDate = normalizeDateFilter(scheduleDateFilter.value)
+  const requestTier = scheduleTierFilter.value
   try {
-    const payload = await fetchBackendScheduleMatches('cs2', {
-      view: scheduleViewMode.value,
-      date: normalizeDateFilter(scheduleDateFilter.value),
-      tier: scheduleTierFilter.value,
-      limit: 3000,
+    const payload = await fetchBackendScheduleMatches(requestGameId, {
+      view: requestView,
+      date: requestDate,
+      tier: requestTier,
+      limit: SCHEDULE_PAGE_SIZE,
+      offset: requestOffset,
     })
-    scheduleRowsFromDb.value = Array.isArray(payload?.matches) ? payload.matches : []
+    if (
+      requestSeq !== scheduleRowsRequestSeq ||
+      requestGameId !== selectedGameId.value ||
+      requestView !== scheduleViewMode.value ||
+      requestDate !== normalizeDateFilter(scheduleDateFilter.value) ||
+      requestTier !== scheduleTierFilter.value ||
+      currentPage.value !== 'schedule'
+    ) {
+      return
+    }
+    const incomingRows = Array.isArray(payload?.matches) ? payload.matches : []
+    if (append) {
+      const mergedRows = [...currentRows]
+      const seenIds = new Set(
+        mergedRows.map((row) => String(row?.matchId || row?.match_id || '').trim()).filter(Boolean),
+      )
+      for (const row of incomingRows) {
+        const mid = String(row?.matchId || row?.match_id || '').trim()
+        if (!mid || !seenIds.has(mid)) {
+          mergedRows.push(row)
+        }
+        if (mid) seenIds.add(mid)
+      }
+      scheduleRowsFromDb.value = mergedRows
+    } else {
+      scheduleRowsFromDb.value = incomingRows
+    }
+    scheduleRowsHasMore.value = incomingRows.length >= SCHEDULE_PAGE_SIZE
     scheduleRowsState.value = 'success'
   } catch (error) {
-    scheduleRowsState.value = 'error'
-    scheduleRowsError.value = String(error?.message || error)
-    scheduleRowsFromDb.value = []
-    console.error('[cs2-schedule-filter-failed]', error)
+    if (append) {
+      scheduleRowsError.value = String(error?.message || error)
+      console.error(`[${selectedGameId.value}-schedule-load-more-failed]`, error)
+    } else {
+      scheduleRowsState.value = 'error'
+      scheduleRowsError.value = String(error?.message || error)
+      scheduleRowsFromDb.value = []
+      scheduleRowsHasMore.value = false
+      console.error(`[${selectedGameId.value}-schedule-filter-failed]`, error)
+    }
+  } finally {
+    if (append) {
+      scheduleRowsLoadingMore.value = false
+    }
   }
 }
 
@@ -1460,7 +1980,7 @@ const startScheduleLivePolling = () => {
 }
 
 const loadBackendPlayerDetail = async () => {
-  if (selectedGameId.value !== 'cs2' || !selectedPlayerId.value) {
+  if (!backendDatasetGameIds.has(selectedGameId.value) || !selectedPlayerId.value) {
     playerDetail.value = null
     playerDetailState.value = 'idle'
     playerDetailError.value = ''
@@ -1469,19 +1989,24 @@ const loadBackendPlayerDetail = async () => {
 
   playerDetailState.value = 'loading'
   playerDetailError.value = ''
+  const requestGameId = selectedGameId.value
+  const requestPlayerId = selectedPlayerId.value
   try {
-    playerDetail.value = await fetchBackendPlayerDetail('cs2', selectedPlayerId.value)
+    const detail = await fetchBackendPlayerDetail(requestGameId, requestPlayerId)
+    if (selectedGameId.value !== requestGameId || selectedPlayerId.value !== requestPlayerId) return
+    playerDetail.value = detail
     playerDetailState.value = 'success'
   } catch (error) {
+    if (selectedGameId.value !== requestGameId || selectedPlayerId.value !== requestPlayerId) return
     playerDetailState.value = 'error'
     playerDetailError.value = String(error?.message || error)
     playerDetail.value = null
-    console.error('[cs2-player-detail-sync-failed]', error)
+    console.error(`[${selectedGameId.value}-player-detail-sync-failed]`, error)
   }
 }
 
 const loadBackendTeamDetail = async () => {
-  if (selectedGameId.value !== 'cs2' || !selectedTeamKey.value) {
+  if (!backendDatasetGameIds.has(selectedGameId.value) || !selectedTeamKey.value) {
     teamDetail.value = null
     teamDetailState.value = 'idle'
     teamDetailError.value = ''
@@ -1492,19 +2017,19 @@ const loadBackendTeamDetail = async () => {
   teamDetailState.value = 'loading'
   teamDetailError.value = ''
   try {
-    teamDetail.value = await fetchBackendTeamDetail('cs2', selectedTeamKey.value)
+    teamDetail.value = await fetchBackendTeamDetail(selectedGameId.value, selectedTeamKey.value)
     teamDetailState.value = 'success'
     teamDetailTab.value = 'data'
   } catch (error) {
     teamDetailState.value = 'error'
     teamDetailError.value = String(error?.message || error)
     teamDetail.value = null
-    console.error('[cs2-team-detail-sync-failed]', error)
+    console.error(`[${selectedGameId.value}-team-detail-sync-failed]`, error)
   }
 }
 
 const loadBackendMatchDetail = async () => {
-  if (selectedGameId.value !== 'cs2' || !selectedMatchId.value) {
+  if (!backendDatasetGameIds.has(selectedGameId.value) || !selectedMatchId.value) {
     matchDetail.value = null
     matchDetailState.value = 'idle'
     matchDetailError.value = ''
@@ -1514,13 +2039,13 @@ const loadBackendMatchDetail = async () => {
   matchDetailState.value = 'loading'
   matchDetailError.value = ''
   try {
-    matchDetail.value = await fetchBackendMatchDetail('cs2', selectedMatchId.value)
+    matchDetail.value = await fetchBackendMatchDetail(selectedGameId.value, selectedMatchId.value)
     matchDetailState.value = 'success'
   } catch (error) {
     matchDetailState.value = 'error'
     matchDetailError.value = String(error?.message || error)
     matchDetail.value = null
-    console.error('[cs2-match-detail-sync-failed]', error)
+    console.error(`[${selectedGameId.value}-match-detail-sync-failed]`, error)
   }
 }
 
@@ -1577,12 +2102,16 @@ watch(
 
 watch(selectedGameId, () => {
   searchKeyword.value = ''
+  lolRegionFilter.value = 'all'
   scheduleDateFilter.value = ''
   scheduleViewMode.value = 'fixture'
   scheduleRowsFromDb.value = []
   scheduleRowsState.value = 'idle'
   scheduleRowsError.value = ''
+  scheduleRowsHasMore.value = false
+  scheduleRowsLoadingMore.value = false
   resetTournamentVisibleRows()
+  resetPlayerVisibleRows()
   if (currentPage.value === 'player-detail' || currentPage.value === 'team-detail' || currentPage.value === 'match-detail') {
     currentPage.value = 'home'
     selectedPlayerId.value = ''
@@ -1594,6 +2123,7 @@ watch(selectedGameId, () => {
     teamKey: selectedTeamKey.value,
     matchId: selectedMatchId.value,
   })
+  loadBackendDatasetForGame(selectedGameId.value)
 })
 
 watch(scheduleDateFilter, (nextValue) => {
@@ -1610,7 +2140,12 @@ watch(
   },
 )
 
+watch([selectedGameId, currentPage, lolRegionFilter], () => {
+  resetPlayerVisibleRows()
+})
+
 watch([selectedGameId, currentPage], () => {
+  ensureBackendDatasetReady()
   startScheduleLivePolling()
 })
 
@@ -1620,10 +2155,51 @@ watch(currentPage, (nextPage) => {
   }
 })
 
+const isMatchFinished = (detail) => {
+  if (!detail || typeof detail !== 'object') return false
+  const winner = String(detail.winner || detail.matchWinner || '').trim()
+  if (winner && winner !== '-') return true
+  const teamAScore = detail.teamA?.score ?? detail.scoreA ?? detail.teamAScore
+  const teamBScore = detail.teamB?.score ?? detail.scoreB ?? detail.teamBScore
+  if (teamAScore != null && teamBScore != null && (teamAScore > 0 || teamBScore > 0)) return true
+  const statusText = String(detail.status || detail.matchStatus || '').trim().toLowerCase()
+  if (statusText === 'completed' || statusText === 'finished' || statusText === '已完赛') return true
+  return false
+}
+
+watch(
+  [() => matchDetailState.value, () => matchDetail.value],
+  async ([state, detail]) => {
+    if (state !== 'success' || !detail || !isMatchFinished(detail)) return
+    const matchId = String(detail.matchId || detail.match_id || selectedMatchId.value || '').trim()
+    if (!matchId || matchId === lastAutoAnalyzedMatchId.value) return
+    lastAutoAnalyzedMatchId.value = matchId
+
+    const teamA = detail.teamA?.name || detail.teamAName || '队伍A'
+    const teamB = detail.teamB?.name || detail.teamBName || '队伍B'
+    const scoreA = detail.teamA?.score ?? detail.scoreA ?? detail.teamAScore ?? '-'
+    const scoreB = detail.teamB?.score ?? detail.scoreB ?? detail.teamBScore ?? '-'
+    const winner = detail.winner || detail.matchWinner || ''
+    const tournament = detail.tournament || detail.eventName || detail.league || ''
+    const gameLabel = activeGameName.value || ''
+
+    let question = `请分析这场${gameLabel}比赛：${teamA} vs ${teamB}`
+    if (tournament) question += `（${tournament}）`
+    question += `，比分 ${scoreA}:${scoreB}`
+    if (winner) question += `，胜者 ${winner}`
+    question += '。请从战术、关键选手表现、地图BP等方面进行分析。'
+
+    await nextTick()
+    if (aiChatWidgetRef.value) {
+      aiChatWidgetRef.value.autoAnalyze(question, aiContextData.value)
+    }
+  },
+)
+
 watch(
   [selectedGameId, currentPage, scheduleViewMode, scheduleDateFilter, scheduleTierFilter],
   () => {
-    loadBackendScheduleRows()
+    loadBackendScheduleRows({ append: false })
   },
 )
 
@@ -1637,12 +2213,17 @@ onMounted(() => {
   window.addEventListener('keydown', handleWindowKeydown)
   document.addEventListener('pointerover', handleTablePointerOver)
   window.addEventListener('mouseleave', handleTablePointerLeaveWindow)
-  loadBackendCs2Dataset()
+  loadBackendDatasetForGame('cs2')
+  loadBackendDatasetForGame('lol')
+  loadBackendDatasetForGame('valorant')
+  startBackendDatasetRefresh()
+  ensureBackendDatasetReady()
   loadBackendScheduleRows()
   startScheduleLivePolling()
 })
 
 onBeforeUnmount(() => {
+  stopBackendDatasetRefresh()
   stopScheduleLivePolling()
   window.removeEventListener('hashchange', syncFromHash)
   document.removeEventListener('pointerdown', handleDocPointerDown)
@@ -1755,7 +2336,7 @@ onBeforeUnmount(() => {
                   >
                     <span class="team-with-logo">
                       <span v-if="resolveTeamLogo(row)" class="team-logo-badge-wrap">
-                        <img class="team-logo-badge" :src="resolveTeamLogo(row)" alt="" loading="lazy" />
+                        <img class="team-logo-badge" :src="resolveTeamLogo(row)" alt="" loading="lazy" @error="markBrokenImage" />
                       </span>
                       <span class="team-name-text">{{ row.name || '-' }}</span>
                     </span>
@@ -1774,11 +2355,11 @@ onBeforeUnmount(() => {
                     @click="openSearchResult('player', row)"
                   >
                     <span class="player-cell">
-                      <img v-if="row.avatar" class="player-avatar" :src="row.avatar" alt="" loading="lazy" />
+                      <img v-if="usableImage(row.avatar)" class="player-avatar" :src="usableImage(row.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                       <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
                       <span class="player-name">{{ row.name || '-' }}</span>
                     </span>
-                    <span>{{ row.team || '-' }} · {{ row.role || '-' }} · Rating {{ row.rating || '-' }}</span>
+                    <span>{{ row.team || '-' }} · {{ row.role || '-' }} · {{ playerSearchMetricText(row) }}</span>
                   </button>
                 </article>
 
@@ -1814,21 +2395,21 @@ onBeforeUnmount(() => {
             <div class="table-wrap">
               <div class="table-head home-rank-grid"><span>#</span><span>战队</span><span>赛区</span><span>胜率</span></div>
               <div v-for="row in homeTopRanking" :key="row.rank + row.name" class="table-row home-rank-grid">
-                <span>{{ row.rank }}</span><span>{{ row.name }}</span><span>{{ row.region }}</span><span>{{ row.winRate }}</span>
+                <span>{{ row.regionRank || row.rank }}</span><span>{{ row.name }}</span><span>{{ row.region }}</span><span>{{ row.winRate }}</span>
               </div>
             </div>
           </article>
           <article class="preview-panel">
             <h3>选手速览</h3>
             <div class="table-wrap">
-              <div class="table-head home-player-grid"><span>选手</span><span>战队</span><span>角色</span><span>Rating</span></div>
+              <div class="table-head home-player-grid"><span>选手</span><span>战队</span><span>角色</span><span>{{ playerPrimaryMetricLabel }}</span></div>
               <div v-for="row in homeTopPlayers" :key="row.playerId" class="table-row home-player-grid">
                 <span class="player-cell">
-                  <img v-if="row.avatar" class="player-avatar" :src="row.avatar" alt="" loading="lazy" />
+                  <img v-if="usableImage(row.avatar)" class="player-avatar" :src="usableImage(row.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                   <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
                   <button class="link-btn player-name" type="button" @click="openPlayerDetail(row)">{{ row.name }}</button>
                 </span>
-                <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ row.rating }}</span>
+                <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span>
               </div>
             </div>
           </article>
@@ -1874,6 +2455,8 @@ onBeforeUnmount(() => {
         :tier-filter="scheduleTierFilter"
         :tier-options="scheduleTierFilterOptions"
         :rows="filteredScheduleRows"
+        :has-more="scheduleRowsHasMore"
+        :loading-more="scheduleRowsLoadingMore"
         :loading="scheduleRowsState === 'loading'"
         :error="scheduleRowsError"
         :resolve-match-date-text="resolveMatchDateText"
@@ -1883,10 +2466,12 @@ onBeforeUnmount(() => {
         :is-result-loser="isResultLoser"
         :resolve-match-kickoff-time="resolveMatchKickoffTime"
         :resolve-schedule-status-text="resolveScheduleStatusText"
+        :image-error-handler="markBrokenImage"
         @update:view-mode="scheduleViewMode = $event"
         @update:date-filter="scheduleDateFilter = $event"
         @update:tier-filter="scheduleTierFilter = $event"
         @open-match="openMatchDetail"
+        @load-more="loadBackendScheduleRows({ append: true })"
       />
 
       <MatchDetailPage
@@ -1894,32 +2479,77 @@ onBeforeUnmount(() => {
         :state="matchDetailState"
         :error="matchDetailError"
         :detail="matchDetail"
+        :game-id="selectedGameId"
         :ensure-cropped-logo="ensureCroppedLogo"
         :resolve-map-image="resolveMapImage"
         :format-map-name="formatMapName"
+        :image-error-handler="markBrokenImage"
         @back="navigateTo('schedule')"
       />
 
       <section v-if="currentPage === 'tournaments'" class="section-card">
         <div class="section-topline">
           <h2>赛事</h2>
-          <span class="section-count">{{ visibleTournamentRows.length }} / {{ filteredRows.tournaments.length }} 条</span>
+          <div class="section-topline-right">
+            <div v-if="isRegionRankGame" class="team-rank-toggle region-filter-toggle">
+              <button
+                v-for="item in lolRegionOptions"
+                :key="`tournament-region-${item.value}`"
+                type="button"
+                class="team-rank-btn"
+                :class="{ active: lolRegionFilter === item.value }"
+                @click="lolRegionFilter = item.value"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+            <span class="section-count">{{ isRegionRankGame ? lolTournamentRows.length : visibleTournamentRows.length }} / {{ filteredRows.tournaments.length }} 条</span>
+          </div>
         </div>
-        <div class="table-wrap tournament-scroll-wrap" @scroll="handleTournamentScroll">
+
+        <div v-if="isRegionRankGame" class="region-page-stack">
+          <div v-if="!lolTournamentGroups.length" class="empty-state">暂无匹配数据</div>
+          <section v-for="group in lolTournamentGroups" :key="`tournament-group-${group.region}`" class="region-data-section">
+            <div class="region-data-title">
+              <h3>{{ group.region }}</h3>
+              <span>{{ group.rows.length }} 项赛事</span>
+            </div>
+            <div class="table-wrap">
+              <div class="table-head tournament-grid"><span>赛事</span><span>级别</span><span>赛区</span><span>开始日期</span><span>结束日期</span><span>状态</span></div>
+              <div v-for="row in group.rows" :key="row.name + row.start" class="table-row tournament-grid">
+                <span>{{ row.name }}</span><span>{{ row.tier }}</span><span>{{ row.region }}</span><span>{{ row.start || '-' }}</span><span>{{ row.end || '-' }}</span><span>{{ row.status }}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div v-else class="table-wrap tournament-scroll-wrap" @scroll="handleTournamentScroll">
           <div class="table-head tournament-grid tournament-head-sticky"><span>赛事</span><span>级别</span><span>赛区</span><span>开始日期</span><span>结束日期</span><span>状态</span></div>
           <div v-if="!visibleTournamentRows.length" class="empty-state">暂无匹配数据</div>
           <div v-for="row in visibleTournamentRows" :key="row.name + row.start" class="table-row tournament-grid">
             <span>{{ row.name }}</span><span>{{ row.tier }}</span><span>{{ row.region }}</span><span>{{ row.start || '-' }}</span><span>{{ row.end || '-' }}</span><span>{{ row.status }}</span>
           </div>
         </div>
-        <div v-if="hasMoreTournamentRows" class="empty-state tournament-load-tip">向下滚动以继续加载更多赛事（每次 20 条）</div>
+        <div v-if="!isRegionRankGame && hasMoreTournamentRows" class="empty-state tournament-load-tip">向下滚动以继续加载更多赛事（每次 20 条）</div>
       </section>
 
       <section v-if="currentPage === 'teams'" class="section-card">
         <div class="section-topline">
           <h2>战队</h2>
           <div class="section-topline-right">
-            <div class="team-rank-toggle">
+            <div v-if="isRegionRankGame" class="team-rank-toggle region-filter-toggle">
+              <button
+                v-for="item in lolRegionOptions"
+                :key="`team-region-${item.value}`"
+                type="button"
+                class="team-rank-btn"
+                :class="{ active: lolRegionFilter === item.value }"
+                @click="lolRegionFilter = item.value"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+            <div v-if="!isLolGame && !isValorantGame" class="team-rank-toggle">
               <button
                 type="button"
                 class="team-rank-btn"
@@ -1937,11 +2567,51 @@ onBeforeUnmount(() => {
                 HLTV 排名
               </button>
             </div>
-            <span class="section-count">{{ teamRowsWithRanking.length }} 条</span>
+            <span class="section-count">{{ isRegionRankGame ? lolTeamRows.length : teamRowsWithRanking.length }} 条</span>
           </div>
         </div>
-        <div class="table-wrap">
-          <div class="table-head team-grid"><span>{{ teamRankMode === 'valve' ? 'Valve排名' : 'HLTV排名' }}</span><span>战队</span><span>积分</span><span>胜率</span><span>趋势</span><span>地图数</span><span>K/D</span><span>Rating</span><span>地图胜率</span><span>场均击杀</span><span>场均死亡</span><span>首杀率</span></div>
+        <div v-if="isRegionRankGame" class="region-page-stack">
+          <div v-if="!lolTeamGroups.length" class="empty-state">暂无匹配数据</div>
+          <section v-for="group in lolTeamGroups" :key="`team-group-${group.region}`" class="region-data-section">
+            <div class="region-data-title">
+              <h3>{{ group.region }}</h3>
+              <span>{{ group.rows.length }} 支战队</span>
+            </div>
+            <div class="table-wrap">
+              <div class="table-head team-grid">
+                <span>赛区排名</span><span>战队</span><span>评分</span><span>胜率</span><span>趋势</span>
+                <span v-for="label in teamMetricHeaders" :key="`lol-team-${label}`">{{ label }}</span>
+              </div>
+              <div v-for="row in group.rows" :key="row.teamId || row.name" class="table-row team-grid">
+                <span>{{ row.regionRank || row.rank || '-' }}</span>
+                <button class="link-btn team-row-link" type="button" @click="openTeamDetail(row)">
+                  <span class="team-with-logo">
+                    <span v-if="resolveTeamLogo(row)" class="team-logo-badge-wrap">
+                      <img
+                        class="team-logo-badge"
+                        :src="resolveTeamLogo(row)"
+                        alt=""
+                        loading="lazy"
+                        @error="markBrokenImage"
+                      />
+                    </span>
+                    <span class="team-name-text">{{ row.name }}</span>
+                  </span>
+                </button>
+                <span>{{ row.points ?? '-' }}</span>
+                <span>{{ row.winRate ?? '-' }}</span>
+                <span>{{ row.trend ?? '-' }}</span>
+                <span v-for="(_, idx) in teamMetricHeaders" :key="`lol-team-metric-${idx}`">{{ teamMetricValue(row, idx) }}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div v-else class="table-wrap">
+          <div class="table-head team-grid">
+            <span>{{ teamRankHeader }}</span><span>战队</span><span>评分</span><span>胜率</span><span>趋势</span>
+            <span v-for="label in teamMetricHeaders" :key="label">{{ label }}</span>
+          </div>
           <div v-if="!teamRowsWithRanking.length" class="empty-state">暂无匹配数据</div>
           <div v-for="row in teamRowsWithRanking" :key="row.teamId || row.name" class="table-row team-grid">
             <span>{{ currentTeamRank(row) || '-' }}</span>
@@ -1953,6 +2623,7 @@ onBeforeUnmount(() => {
                     :src="resolveTeamLogo(row)"
                     alt=""
                     loading="lazy"
+                    @error="markBrokenImage"
                   />
                 </span>
                 <span class="team-name-text">{{ row.name }}</span>
@@ -1961,31 +2632,67 @@ onBeforeUnmount(() => {
             <span>{{ row.points ?? '-' }}</span>
             <span>{{ row.winRate ?? '-' }}</span>
             <span>{{ row.trend ?? '-' }}</span>
-            <span>{{ row.mapNum ?? '-' }}</span>
-            <span>{{ row.kd ?? '-' }}</span>
-            <span>{{ row.rating ?? '-' }}</span>
-            <span>{{ row.mapWinRate ?? '-' }}</span>
-            <span>{{ row.avgKill ?? '-' }}</span>
-            <span>{{ row.avgDeath ?? '-' }}</span>
-            <span>{{ row.firstKillRate ?? '-' }}</span>
+            <span v-for="(_, idx) in teamMetricHeaders" :key="`team-metric-${idx}`">{{ teamMetricValue(row, idx) }}</span>
           </div>
         </div>
       </section>
 
       <section v-if="currentPage === 'players'" class="section-card">
-        <div class="section-topline"><h2>选手</h2><span class="section-count">{{ filteredRows.players.length }} 条</span></div>
-        <div class="table-wrap">
-          <div class="table-head player-grid"><span>排名</span><span>选手</span><span>所属战队</span><span>角色</span><span>Rating</span><span>Impact</span><span>指标</span></div>
+        <div class="section-topline">
+          <h2>选手</h2>
+          <div class="section-topline-right">
+            <div v-if="isRegionRankGame" class="team-rank-toggle region-filter-toggle">
+              <button
+                v-for="item in lolRegionOptions"
+                :key="`player-region-${item.value}`"
+                type="button"
+                class="team-rank-btn"
+                :class="{ active: lolRegionFilter === item.value }"
+                @click="lolRegionFilter = item.value"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+            <span class="section-count">{{ visiblePlayerCount }} / {{ playerTotalCount }} 条</span>
+          </div>
+        </div>
+
+        <div v-if="isRegionRankGame" class="region-page-stack player-scroll-wrap" @scroll.passive="handlePlayerScroll">
+          <div v-if="!lolPlayerGroups.length" class="empty-state">暂无匹配数据</div>
+          <section v-for="group in lolPlayerGroups" :key="`player-group-${group.region}`" class="region-data-section">
+            <div class="region-data-title">
+              <h3>{{ group.region }}</h3>
+              <span>{{ group.rows.length }} 名选手</span>
+            </div>
+            <div class="table-wrap">
+              <div class="table-head player-grid"><span>赛区排名</span><span>选手</span><span>所属战队</span><span>位置</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>指标</span></div>
+              <div v-for="row in group.rows" :key="row.playerKey || row.playerId" class="table-row player-grid">
+                <span>{{ row.displayRank || row.rank || '-' }}</span>
+                <span class="player-cell">
+                  <img v-if="usableImage(row.avatar)" class="player-avatar" :src="usableImage(row.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
+                  <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
+                  <button class="link-btn player-name" type="button" @click="openPlayerDetail(row)">{{ row.name }}</button>
+                </span>
+                <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ row.highlight }}</span>
+              </div>
+            </div>
+          </section>
+          <button v-if="hasMorePlayerRows" class="outline-btn load-more-btn" type="button" @click="loadMorePlayerRows">加载更多</button>
+        </div>
+
+        <div v-else class="table-wrap player-scroll-wrap" @scroll.passive="handlePlayerScroll">
+          <div class="table-head player-grid"><span>排名</span><span>选手</span><span>所属战队</span><span>角色</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>指标</span></div>
           <div v-if="!playerRowsWithRank.length" class="empty-state">暂无匹配数据</div>
-          <div v-for="row in playerRowsWithRank" :key="row.playerId" class="table-row player-grid">
+          <div v-for="row in visiblePlayerRowsWithRank" :key="row.playerKey || row.playerId" class="table-row player-grid">
             <span>{{ row.displayRank }}</span>
             <span class="player-cell">
-              <img v-if="row.avatar" class="player-avatar" :src="row.avatar" alt="" loading="lazy" />
+              <img v-if="usableImage(row.avatar)" class="player-avatar" :src="usableImage(row.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
               <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
               <button class="link-btn player-name" type="button" @click="openPlayerDetail(row)">{{ row.name }}</button>
             </span>
-            <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ row.rating }}</span><span>{{ row.impact }}</span><span>{{ row.highlight }}</span>
+            <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ row.highlight }}</span>
           </div>
+          <button v-if="hasMorePlayerRows" class="outline-btn load-more-btn" type="button" @click="loadMorePlayerRows">加载更多</button>
         </div>
       </section>
 
@@ -2008,6 +2715,7 @@ onBeforeUnmount(() => {
                   :src="ensureCroppedLogo(teamDetail.basic.teamLogo, teamDetail.basic.teamName)"
                   alt=""
                   loading="lazy"
+                  @error="markBrokenImage"
                 />
               </span>
               <b v-else class="team-hero-fallback">{{ playerInitial(teamDetail.basic.teamName) }}</b>
@@ -2018,10 +2726,24 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div class="team-hero-right">
-              <p>世界排名: <b>{{ displayValue(teamDetail.rank?.globalRank ?? teamDetail.stats?.globalRank) }}</b></p>
-              <p>Valve 排名: <b>{{ displayValue(teamDetail.rank?.valveRank ?? teamDetail.stats?.valveRank) }}</b></p>
-              <p>评分: <b>{{ displayValue(teamDetail.stats?.rating) }}</b></p>
-              <p>K/D: <b>{{ displayValue(teamDetail.stats?.kd) }}</b></p>
+              <template v-if="isLolGame">
+                <p>比赛数: <b>{{ displayValue(teamDetail.stats?.matchesPlayed) }}</b></p>
+                <p>胜场: <b>{{ displayValue(teamDetail.stats?.wins) }}</b></p>
+                <p>胜率: <b>{{ displayValue(teamDetail.stats?.winRate) }}</b></p>
+                <p>本站评分: <b>{{ displayValue(teamDetail.stats?.rankScore || teamDetail.rank?.score) }}</b></p>
+              </template>
+              <template v-else-if="isValorantGame">
+                <p>赛区排名: <b>{{ displayValue(teamDetail.rank?.regionRank ?? teamDetail.stats?.regionRank) }}</b></p>
+                <p>全局参考: <b>{{ displayValue(teamDetail.rank?.globalRank ?? teamDetail.stats?.globalRank) }}</b></p>
+                <p>区域评分: <b>{{ displayValue(teamDetail.stats?.rankScore || teamDetail.rank?.score) }}</b></p>
+                <p>胜率: <b>{{ displayValue(teamDetail.stats?.winRate) }}</b></p>
+              </template>
+              <template v-else>
+                <p>世界排名: <b>{{ displayValue(teamDetail.rank?.globalRank ?? teamDetail.stats?.globalRank) }}</b></p>
+                <p>Valve 排名: <b>{{ displayValue(teamDetail.rank?.valveRank ?? teamDetail.stats?.valveRank) }}</b></p>
+                <p>评分: <b>{{ displayValue(teamDetail.stats?.rating) }}</b></p>
+                <p>K/D: <b>{{ displayValue(teamDetail.stats?.kd) }}</b></p>
+              </template>
             </div>
           </article>
 
@@ -2060,15 +2782,15 @@ onBeforeUnmount(() => {
                 <span>{{ row.tournament || '-' }}</span>
                 <span class="matchup-cell">
                   <span class="team-with-logo team-side-a">
-                    <span v-if="row.teamLogo" class="team-logo-badge-wrap">
-                      <img class="team-logo-badge" :src="ensureCroppedLogo(row.teamLogo, row.teamName)" alt="" loading="lazy" />
+                    <span v-if="ensureCroppedLogo(row.teamLogo, row.teamName)" class="team-logo-badge-wrap">
+                      <img class="team-logo-badge" :src="ensureCroppedLogo(row.teamLogo, row.teamName)" alt="" loading="lazy" @error="markBrokenImage" />
                     </span>
                     <span class="team-name-text">{{ row.teamName || '-' }}</span>
                   </span>
                   <span class="vs-text">vs</span>
                   <span class="team-with-logo team-side-b">
-                    <span v-if="row.opponentLogo" class="team-logo-badge-wrap">
-                      <img class="team-logo-badge" :src="ensureCroppedLogo(row.opponentLogo, row.opponent)" alt="" loading="lazy" />
+                    <span v-if="ensureCroppedLogo(row.opponentLogo, row.opponent)" class="team-logo-badge-wrap">
+                      <img class="team-logo-badge" :src="ensureCroppedLogo(row.opponentLogo, row.opponent)" alt="" loading="lazy" @error="markBrokenImage" />
                     </span>
                     <span class="team-name-text">{{ row.opponent || '-' }}</span>
                   </span>
@@ -2091,7 +2813,7 @@ onBeforeUnmount(() => {
                 :disabled="row.isPlaceholder || !row.playerId"
                 @click="!row.isPlaceholder && row.playerId && navigateTo('player-detail', { playerId: row.playerId })"
               >
-                <img v-if="row.avatar" class="team-member-avatar" :src="row.avatar" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                <img v-if="usableImage(row.avatar)" class="team-member-avatar" :src="usableImage(row.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                 <b v-else class="team-member-avatar-fallback">{{ playerInitial(row.name) }}</b>
                 <div class="team-member-meta">
                   <p class="team-member-name">{{ row.name || '-' }}</p>
@@ -2117,7 +2839,7 @@ onBeforeUnmount(() => {
           <div class="hero-teammate-layout">
             <article class="player-hero-card">
               <div class="player-photo-stack" :style="teamLogoMaskStyle(playerTeamLogo)">
-                <img v-if="playerDetail.basic.avatar" class="player-hero-avatar" :src="playerDetail.basic.avatar" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                <img v-if="usableImage(playerDetail.basic.avatar)" class="player-hero-avatar" :src="usableImage(playerDetail.basic.avatar)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                 <b v-else class="player-hero-fallback">{{ playerInitial(playerDetail.basic.name) }}</b>
               </div>
               <div class="player-hero-text">
@@ -2134,13 +2856,25 @@ onBeforeUnmount(() => {
                   </button>
                   <span v-else>{{ playerDetail.basic.teamName || '-' }}</span>
                 </p>
-                <p>位置: {{ playerDetail.basic.positions || playerDetail.basic.position || '-' }}</p>
+                <template v-if="isValorantGame">
+                  <p>主要定位: {{ playerDetail.basic.primaryRole || playerDetail.basic.positions || playerDetail.basic.position || '-' }}</p>
+                  <p>常用特工: {{ playerDetail.basic.agents || '-' }}</p>
+                </template>
+                <p v-else>位置: {{ playerDetail.basic.positions || playerDetail.basic.position || '-' }}</p>
               </div>
               <div class="player-hero-right">
-                <p>Rating: <b>{{ playerDetail.basic.rating || '-' }}</b></p>
-                <p>Impact: <b>{{ playerDetail.basic.impact || '-' }}</b></p>
-                <p>KD: <b>{{ playerDetail.basic.kd || '-' }}</b></p>
-                <p>ADR: <b>{{ playerDetail.basic.adr || '-' }}</b></p>
+                <template v-if="isLolGame">
+                  <p>赛区排名: <b>{{ playerDetail.rank?.regionRank || playerDetail.basic.regionRank || '-' }}</b></p>
+                  <p>总排名: <b>{{ playerDetail.rank?.globalRank || playerDetail.basic.globalRank || '-' }}</b></p>
+                  <p>KDA: <b>{{ playerDetail.basic.kda || playerDetail.basic.rating || '-' }}</b></p>
+                  <p>场次: <b>{{ playerDetail.basic.gamesPlayed || playerDetail.basic.impact || '-' }}</b></p>
+                </template>
+                <template v-else>
+                  <p>Rating: <b>{{ playerDetail.basic.rating || '-' }}</b></p>
+                  <p>Impact: <b>{{ playerDetail.basic.impact || '-' }}</b></p>
+                  <p>KD: <b>{{ playerDetail.basic.kd || '-' }}</b></p>
+                  <p>ADR: <b>{{ playerDetail.basic.adr || '-' }}</b></p>
+                </template>
               </div>
             </article>
 
@@ -2156,12 +2890,12 @@ onBeforeUnmount(() => {
                   @click="navigateTo('player-detail', { playerId: row.teammate_id })"
                 >
                   <div class="teammate-photo-stack" :style="teamLogoMaskStyle(resolveTeammateTeamLogo(row))">
-                    <img v-if="resolveTeammateAvatar(row)" class="teammate-avatar" :src="resolveTeammateAvatar(row)" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                    <img v-if="resolveTeammateAvatar(row)" class="teammate-avatar" :src="resolveTeammateAvatar(row)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                     <b v-else class="teammate-avatar-fallback">{{ playerInitial(row.teammate_name || row.teammate_id) }}</b>
                   </div>
                   <div class="teammate-meta">
                     <p class="teammate-name">{{ row.teammate_name || row.teammate_id }}</p>
-                    <img v-if="row.country_logo" class="teammate-flag" :src="row.country_logo" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                    <img v-if="usableImage(row.country_logo)" class="teammate-flag" :src="usableImage(row.country_logo)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                   </div>
                 </button>
               </div>
@@ -2170,7 +2904,7 @@ onBeforeUnmount(() => {
 
           <div class="ability-section-row">
             <article class="detail-card ability-pie-card">
-              <h3>能力分项</h3>
+              <h3>{{ isLolGame ? '高阶能力分项' : '能力分项' }}</h3>
               <div v-if="!orderedAbilityMetrics.length" class="empty-state">暂无数据</div>
               <div v-else class="ability-pie-rows">
                 <div class="ability-pie-row">
@@ -2205,7 +2939,43 @@ onBeforeUnmount(() => {
             </article>
           </div>
 
-          <div class="summary-settings-row">
+          <div v-if="isLolGame" class="lol-profile-row">
+            <article class="detail-card lol-form-card">
+              <h3>近期状态</h3>
+              <div class="lol-form-grid">
+                <p><span>近况局数</span><b>{{ lolRecentForm.games || 0 }}</b></p>
+                <p><span>胜率</span><b>{{ lolRecentForm.winRate || '-' }}</b></p>
+                <p><span>KDA</span><b>{{ lolRecentForm.kda || '-' }}</b></p>
+                <p><span>场均 CS</span><b>{{ lolRecentForm.avgCs || '-' }}</b></p>
+              </div>
+              <div class="lol-form-champions">
+                <span v-for="row in lolRecentForm.champions || []" :key="row.champion">{{ row.champion }} · {{ row.games }}</span>
+              </div>
+            </article>
+
+            <article class="detail-card lol-career-card">
+              <h3>生涯队伍</h3>
+              <div v-if="lolCareerProfile.careerStartLabel || lolCareerProfile.source" class="lol-career-source">
+                <span>职业首见: {{ lolCareerProfile.careerStartLabel || '-' }}</span>
+                <b>{{ lolCareerProfile.source || '本站比赛库' }}</b>
+              </div>
+              <div v-if="!lolCareerTeams.length" class="empty-state">暂无数据</div>
+              <div v-else class="lol-career-list">
+                <div v-for="row in lolCareerTeams" :key="row.teamId" class="lol-career-item">
+                  <img v-if="ensureCroppedLogo(row.teamLogo, row.teamName)" :src="ensureCroppedLogo(row.teamLogo, row.teamName)" alt="" loading="lazy" @error="markBrokenImage" />
+                  <b v-else>{{ playerInitial(row.teamName) }}</b>
+                  <p>
+                    <strong>{{ row.teamName || '-' }}</strong>
+                    <span>{{ row.role || '-' }} · {{ row.gamesLabel || `${row.games || 0} 局` }}</span>
+                    <small v-if="row.sourceLabel">{{ row.sourceLabel }}</small>
+                  </p>
+                  <em>{{ row.tenureStart || row.firstSeen || '-' }} - {{ row.tenureEnd || row.lastSeen || '-' }}</em>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="summary-settings-row">
             <article class="detail-card summary-chart-card">
               <h3>统计摘要</h3>
               <div class="summary-card-grid">
@@ -2229,7 +2999,24 @@ onBeforeUnmount(() => {
             </article>
           </div>
 
-          <div class="map-gear-row">
+          <div v-if="isLolGame" class="map-gear-row">
+            <article class="detail-card map-panel-card lol-champion-card">
+              <h3>英雄池表现</h3>
+              <div class="panel-scroll mini-table">
+                <div class="mini-head lol-champion-grid"><span>英雄</span><span>局数</span><span>KDA</span><span>K/D/A</span><span>场均 CS</span></div>
+                <div v-if="!lolChampionStats.length" class="empty-state">暂无数据</div>
+                <div v-for="row in lolChampionStats" :key="row.champion" class="mini-row lol-champion-grid">
+                  <span>{{ row.champion || '-' }}</span>
+                  <span>{{ row.games || '-' }}</span>
+                  <span>{{ row.kda || '-' }}</span>
+                  <span>{{ row.kills || 0 }}/{{ row.deaths || 0 }}/{{ row.assists || 0 }}</span>
+                  <span>{{ row.avgCs || '-' }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="map-gear-row">
             <article class="detail-card map-panel-card">
               <h3>地图表现</h3>
               <div class="panel-scroll mini-table">
@@ -2249,7 +3036,7 @@ onBeforeUnmount(() => {
               <div v-if="!playerDetail.equipment?.length" class="empty-state">暂无数据</div>
               <div v-else class="panel-scroll gear-grid gear-grid-paired">
                 <div v-for="row in playerDetail.equipment" :key="row.category + row.name" class="gear-item">
-                  <img v-if="resolveEquipmentLogo(row)" class="gear-logo" :src="resolveEquipmentLogo(row)" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                  <img v-if="resolveEquipmentLogo(row)" class="gear-logo" :src="resolveEquipmentLogo(row)" alt="" loading="lazy" referrerpolicy="no-referrer" @error="markBrokenImage" />
                   <b v-else class="gear-logo-fallback">{{ playerInitial(row.category || '?') }}</b>
                   <div class="gear-meta">
                     <span>{{ equipmentLabel(row.category) }}</span>
@@ -2263,14 +3050,28 @@ onBeforeUnmount(() => {
           <article class="detail-card">
             <h3>近期比赛</h3>
             <div class="mini-table">
-              <div class="mini-head recent-grid"><span>时间</span><span>赛事</span><span>对手</span><span>比分</span></div>
+              <div v-if="isLolGame" class="mini-head lol-recent-grid"><span>时间</span><span>赛事</span><span>对手</span><span>英雄</span><span>K/D/A</span><span>CS</span><span>结果</span></div>
+              <div v-else class="mini-head recent-grid"><span>时间</span><span>赛事</span><span>对手</span><span>比分</span></div>
               <div v-if="!playerDetail.recentMatches?.length" class="empty-state">暂无数据</div>
-              <div v-for="row in playerDetail.recentMatches" :key="row.match_id" class="mini-row recent-grid">
-                <span>{{ row.ts_text || '-' }}</span>
-                <span>{{ row.tournament_name || '-' }}</span>
-                <span>{{ row.opponent_team_name || '-' }}</span>
-                <span>{{ row.home_score ?? '-' }} - {{ row.opponent_score ?? '-' }}</span>
-              </div>
+              <template v-if="isLolGame">
+                <div v-for="row in playerDetail.recentMatches" :key="row.game_id || row.match_id" class="mini-row lol-recent-grid">
+                  <span>{{ row.ts_text || '-' }}</span>
+                  <span>{{ row.tournament_name || row.event_name || '-' }}</span>
+                  <span>{{ row.opponent_team_name || '-' }}</span>
+                  <span>{{ row.champion || '-' }}</span>
+                  <span>{{ row.kills ?? '-' }}/{{ row.deaths ?? '-' }}/{{ row.assists ?? '-' }}</span>
+                  <span>{{ row.cs ?? '-' }}</span>
+                  <span>{{ row.result || '-' }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <div v-for="row in playerDetail.recentMatches" :key="row.match_id" class="mini-row recent-grid">
+                  <span>{{ row.ts_text || '-' }}</span>
+                  <span>{{ row.tournament_name || '-' }}</span>
+                  <span>{{ row.opponent_team_name || '-' }}</span>
+                  <span>{{ row.home_score ?? '-' }} - {{ row.opponent_score ?? '-' }}</span>
+                </div>
+              </template>
             </div>
           </article>
 
@@ -2283,7 +3084,6 @@ onBeforeUnmount(() => {
                   <p><span>时间</span><b>{{ row.start_time || '-' }}</b></p>
                   <p><span>赛事</span><b>{{ row.tt_name || '-' }}</b></p>
                   <p><span>名次</span><b>{{ row.rank_desc || row.rank || '-' }}</b></p>
-                  <p><span>奖金</span><b>{{ row.bonus || '-' }}</b></p>
                   <p><span>战队</span><b>{{ row.team_name || '-' }}</b></p>
                   <p><span>级别</span><b>{{ row.grade || '-' }}</b></p>
                 </div>
@@ -2291,7 +3091,7 @@ onBeforeUnmount(() => {
             </template>
           </article>
 
-          <article class="detail-card">
+          <article v-if="!isLolGame" class="detail-card">
             <h3>里程碑</h3>
             <div class="mini-table">
               <div class="mini-head milestone-grid"><span>时间</span><span>荣誉</span><span>详情</span><span>赛事</span></div>
@@ -2305,7 +3105,7 @@ onBeforeUnmount(() => {
             </div>
           </article>
 
-          <article class="detail-card rating-chart-card">
+          <article v-if="!isLolGame" class="detail-card rating-chart-card">
             <h3>Rating 曲线</h3>
             <div v-if="!ratingPlotPoints.length" class="empty-state">暂无数据</div>
             <div
@@ -2358,4 +3158,12 @@ onBeforeUnmount(() => {
       </section>
     </template>
   </div>
+
+  <AiChatWidget
+    ref="aiChatWidgetRef"
+    :game-id="selectedGameId"
+    :game-name="activeGameName"
+    :page="currentPage"
+    :context-data="aiContextData"
+  />
 </template>

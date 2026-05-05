@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   viewMode: { type: String, default: 'fixture' },
@@ -9,6 +9,8 @@ const props = defineProps({
   tierFilter: { type: String, default: 'b_or_above' },
   tierOptions: { type: Array, default: () => [] },
   rows: { type: Array, default: () => [] },
+  hasMore: { type: Boolean, default: false },
+  loadingMore: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   error: { type: String, default: '' },
   resolveMatchDateText: { type: Function, required: true },
@@ -18,6 +20,7 @@ const props = defineProps({
   isResultLoser: { type: Function, required: true },
   resolveMatchKickoffTime: { type: Function, required: true },
   resolveScheduleStatusText: { type: Function, required: true },
+  imageErrorHandler: { type: Function, default: null },
 })
 
 const emit = defineEmits([
@@ -25,36 +28,14 @@ const emit = defineEmits([
   'update:dateFilter',
   'update:tierFilter',
   'open-match',
+  'load-more',
 ])
-
-const PAGE_SIZE = 20
-const visibleCount = ref(PAGE_SIZE)
 
 const updateViewMode = (value) => emit('update:viewMode', value)
 const updateDateFilter = (event) => emit('update:dateFilter', event?.target?.value || '')
 const updateTierFilter = (event) => emit('update:tierFilter', event?.target?.value || 'b_or_above')
 const clearDate = () => emit('update:dateFilter', '')
-
-const resetVisibleRows = () => {
-  visibleCount.value = PAGE_SIZE
-}
-
-watch(
-  () => props.rows,
-  () => {
-    resetVisibleRows()
-  },
-)
-
-watch(
-  () => [props.viewMode, props.dateFilter, props.tierFilter],
-  () => {
-    resetVisibleRows()
-  },
-)
-
-const visibleRows = computed(() => (props.rows || []).slice(0, visibleCount.value))
-const hasMoreRows = computed(() => visibleRows.value.length < (props.rows || []).length)
+const visibleRows = computed(() => props.rows || [])
 
 const groupedVisibleRows = computed(() => {
   const groups = []
@@ -74,8 +55,12 @@ const groupedVisibleRows = computed(() => {
 })
 
 const loadMoreRows = () => {
-  if (!hasMoreRows.value || props.loading) return
-  visibleCount.value += PAGE_SIZE
+  if (!props.hasMore || props.loading || props.loadingMore) return
+  emit('load-more')
+}
+
+const handleImageError = (event) => {
+  if (typeof props.imageErrorHandler === 'function') props.imageErrorHandler(event)
 }
 
 const handleScheduleScroll = (event) => {
@@ -141,7 +126,7 @@ const handleScheduleScroll = (event) => {
         >
           清空
         </button>
-        <span class="section-count">{{ visibleRows.length }} / {{ rows.length }} 条</span>
+        <span class="section-count">{{ rows.length }} 条</span>
       </div>
     </div>
 
@@ -156,10 +141,10 @@ const handleScheduleScroll = (event) => {
           <span class="schedule-head-side" aria-hidden="true"></span>
         </span>
         <span>时间</span>
-        <span>赛段</span>
+        <span class="schedule-stage-head">赛段</span>
         <span>状态</span>
       </div>
-      <div v-if="loading" class="empty-state">正在从数据库加载筛选结果...</div>
+      <div v-if="loading && !groupedVisibleRows.length" class="empty-state">正在从数据库加载筛选结果...</div>
       <div v-else-if="!groupedVisibleRows.length" class="empty-state">暂无匹配数据</div>
       <template v-else>
         <div
@@ -190,6 +175,7 @@ const handleScheduleScroll = (event) => {
                     :src="resolveMatchTeamLogo(row, 'A')"
                     alt=""
                     loading="lazy"
+                    @error="handleImageError"
                   />
                 </span>
                 <span class="team-name-text">{{ row.teamA || '-' }}</span>
@@ -227,17 +213,21 @@ const handleScheduleScroll = (event) => {
                     :src="resolveMatchTeamLogo(row, 'B')"
                     alt=""
                     loading="lazy"
+                    @error="handleImageError"
                   />
                 </span>
               </span>
             </span>
             <span>{{ resolveMatchKickoffTime(row) }}</span>
-            <span>{{ row.stage || '-' }}</span>
+            <span class="schedule-stage-cell" :title="row.stage || '-'">
+              <span class="schedule-stage-text">{{ row.stage || '-' }}</span>
+            </span>
             <span>{{ resolveScheduleStatusText(row) }}</span>
           </div>
         </div>
       </template>
     </div>
-    <div v-if="hasMoreRows" class="empty-state schedule-load-tip">向下滚动加载更多比赛（每次 20 场）</div>
+    <div v-if="loadingMore" class="empty-state schedule-load-tip">正在加载更多赛程...</div>
+    <div v-else-if="hasMore" class="empty-state schedule-load-tip">向下滚动加载下一批 20 条</div>
   </section>
 </template>

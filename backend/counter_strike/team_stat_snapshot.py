@@ -332,10 +332,16 @@ def crawl_team_stat_snapshot(
                 futures = {executor.submit(fetch_list_page, p): p for p in pages}
                 for future in as_completed(futures):
                     page = futures[future]
-                    data = future.result()
+                    try:
+                        data = future.result()
+                    except Exception as exc:
+                        print(f"[team_stat_snapshot] page={page} failed, skip: {exc}")
+                        continue
                     page_items_map[page] = _extract_items(data)
 
             for page in range(2, max_pages + 1):
+                if page not in page_items_map:
+                    continue
                 items = page_items_map.get(page, [])
                 if not items:
                     print(f"[team_stat_snapshot] page={page} no data, stop.")

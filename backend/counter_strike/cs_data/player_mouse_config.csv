@@ -1,18 +1,11 @@
 ﻿player_id,dpi,e_dpi,hz,mouse_acceleration,mouse_name,raw_input,sensitivity,windows_sensitivity,zoom_sensitivity
 csgo_pl_16885,400,812,1000,0,Logitech G Pro X Superlight Red,1,2.03,6,0.90
 csgo_pl_21023,,,,,,,,,
-csgo_pl_22069,,,,,,,,,
 csgo_pl_25524,,,,,,,,,
-csgo_pl_24890,,,,,,,,,
-csgo_pl_22967,,,,,,,,,
-csgo_pl_18706,,,,,,,,,
 csgo_pl_22733,,,,,,,,,
 csgo_pl_21930,,,,,,,,,
 csgo_pl_24149,,,,,,,,,
 csgo_pl_24121,,,,,,,,,
-csgo_pl_25505,,,,,,,,,
-csgo_pl_19128,,,,,,,,,
-csgo_pl_17622,,,,,,,,,
 csgo_pl_20029,,,,,,,,,
 csgo_pl_11213,,,,,,,,,
 csgo_pl_19817,400,1156.00,1000,,Razer Viper V3 Pro Black,,2.89,6,1
@@ -31,64 +24,23 @@ csgo_pl_25806,,,,,,,,,
 csgo_pl_9616,800,1240,1000,0,Logitech G Pro X Superlight Black,1,1.55,6,0.818933027098955
 csgo_pl_23228,,,,,,,,,
 csgo_pl_25671,,,,,,,,,
-csgo_pl_25854,,,,,,,,,
 csgo_pl_25855,,,,,,,,,
 csgo_pl_16381,,,,,,,,,
 csgo_pl_25663,,,,,,,,,
 csgo_pl_25664,,,,,,,,,
 csgo_pl_22224,,,,,,,,,
-csgo_pl_22450,,,,,,,,,
-csgo_pl_24114,,,,,,,,,
 csgo_pl_17293,,,,,,,,,
-csgo_pl_19709,400,680.00,1000,,Razer Viper V3 Pro Black,,1.7,6,1
-csgo_pl_7322,400,640,1000,0,Razer Deathadder V3 Pro White,1,1.6,6,1
-csgo_pl_11893,400,800,1000,0,ZOWIE EC2-CW,1,2,6,1
-csgo_pl_16693,400,1440,1000,0,VAXEE OUTSET AX Yellow,1,3.60,6,1.10
-csgo_pl_18462,800,680,1000,0,VAXEE XE Wireless Orange,1,0.85,6,1.00
-csgo_pl_11816,400,708,1000,0,ZOWIE EC2-CW,1,1.77,6,1
-csgo_pl_9816,800,840,1000,0,Logitech G Pro X Superlight Black,1,1.05,6,0.95
-csgo_pl_14759,400,940,4000,0,Razer Deathadder V3 Pro,1,2.35,6,1
-csgo_pl_18987,400,568,1000,0,Logitech G Pro X Superlight Red,1,1.42,6,1
-csgo_pl_20127,400,1236,1000,0,Logitech G Pro X Superlight White,1,3.09,6,1
-csgo_pl_22673,,,,,,,,,
-csgo_pl_12553,400,1000,1000,0,ZOWIE EC1-C,1,2.50,6,1
-csgo_pl_15631,800,1069.6,1000,0,VAXEE XE Wireless Orange,1,1.337,5,1
-csgo_pl_2023,400,556,1000,0,Fallen Pantera Pro Wireless Preto,1,1.39,6,1.2
-csgo_pl_24144,400,800.00,1000,,Logitech G Pro X Superlight 2 White,,2,6,1
-csgo_pl_13915,800,960,1000,0,ZOWIE EC2-CW,1,1.2,6,1.00
 csgo_pl_19235,800,928,1000,,Logitech G Pro X Superlight White,,1.16,6,1
-csgo_pl_13776,3200,800,4000,0,Razer Deathadder V3 Pro White,1,0.25,6,1.00
 csgo_pl_22929,,,,,,,,,
 csgo_pl_22471,,,,,,,,,
 csgo_pl_23685,,,,,,,,,
-csgo_pl_3741,400,520,1000,0,Razer Deathadder V3 Pro,1,1.30,6,1.00
-csgo_pl_12018,800,880,1000,0,Xtrfy M4 Wireless,1,1.10,6,0.9
-csgo_pl_19677,400,960,1000,0,Logitech G Pro X Superlight White,1,2.4,6,1.00
-csgo_pl_19230,400,800,1000,0,Logitech G Pro X Superlight Red,1,2,6,1
-csgo_pl_24177,800,1024.00,1000,,Logitech G Pro X Superlight 2 Magenta,,1.28,6,1
-csgo_pl_7938,400,800,1000,1.05,ZOWIE FK1-C,1,2,6,1.1
-csgo_pl_150,400,720,1000,0,VAXEE XE Wireless White,1,1.8,6,1
-csgo_pl_8574,1620,2430,1000,0,SteelSeries Sensei Ten,1,1.5,6,1.00
-csgo_pl_21243,800,1200,1000,0,Lamzu Atlantis,1,1.5,6,1
-csgo_pl_20968,800,1040,1000,0,Logitech G Pro X Superlight Black,1,1.3,6,1
 csgo_pl_20194,400,760,1000,0,Logitech G Pro X Superlight White,1,1.9,6,1
 csgo_pl_20275,400,720,1000,0,Logitech G Pro X Superlight White,1,1.8,6,0.95
 csgo_pl_21001,,,,,Logitech G Pro X Superlight Red,,,,
 csgo_pl_21809,,,,,Logitech G Pro X Superlight White,,,,
 csgo_pl_23402,400,560.00,1000,,Logitech G Pro X Superlight 2 Magenta,,1.4,6,1
-csgo_pl_18072,800,800,1000,0,VAXEE OUTSET AX,1,1.00,6,1.00
-csgo_pl_18850,400,600,1000,0,Razer Deathadder V3 Pro Black,1,1.5,6,1
-csgo_pl_20312,400,880,1000,0,ZOWIE EC1-C,1,2.20,6,1.00
-csgo_pl_13666,800,1040,1000,0,ZOWIE EC2-CW,1,1.3,6,1
-csgo_pl_18221,900,990,4000,0,Razer Deathadder V3 Pro Black,1,1.1,6,1.00
-csgo_pl_16920,800,832,1000,0,Logitech G Pro X Superlight White,1,1.04,6,1
-csgo_pl_21167,800,1000,2000,0,LOGITECH G PRO X SUPERLIGHT 2 MAGENTA,6,1.25,1.25,1
-csgo_pl_19808,400,604,2000,,Logitech G Pro X Superlight 2 Magenta,,1.51,6,1
-csgo_pl_18317,400,534.8,1000,0,ZOWIE S1-C,1,1.337,6,1.20
-csgo_pl_20423,800,840,1000,0,ZOWIE EC3-C,1,1.05,6,1
 csgo_pl_17956,800,720,1000,0,ZOWIE EC2-CW,1,0.90,6,1
 csgo_pl_20304,800,960,1000,0,Endgame Gear XM2w,1,1.2,6,1
-csgo_pl_10096,400,1000,1000,0,Logitech G Pro X Superlight Red,1,2.5,6,1
 csgo_pl_16726,800,1400,1000,0,Logitech G Pro X Superlight Black,1,1.75,6,0.818933027098955175
 csgo_pl_21217,400,800,2000,,Logitech G Pro X Superlight 2 Black,,2,6,1
 csgo_pl_20584,,,,,,,,,
@@ -97,75 +49,22 @@ csgo_pl_22674,,,,,,,,,
 csgo_pl_23553,,,,,,,,,
 csgo_pl_20761,800,1200,1000,0,Logitech G Pro X Superlight Black,1,1.5,8,1
 csgo_pl_3972,400,868,1000,0,Logitech G Pro X Superlight White,1,2.17,6,1
-csgo_pl_20447,400,1240,1000,,Logitech G Pro X Superlight Magenta,,3.1,6,1
-csgo_pl_19164,400,760,1000,0,Logitech G Pro X Superlight White,1,1.90,6,0.90
-csgo_pl_21062,800,720,1000,0,Logitech G Pro X Superlight,1,0.9,6,1
-csgo_pl_9436,400,760,1000,0,ZOWIE EC2-CW,1,1.9,6,1
-csgo_pl_13138,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
-csgo_pl_13497,1600,1120,1000,0,SteelSeries Rival 300,1,0.70,6,0.90
-csgo_pl_19739,400,800,1000,0,Logitech G Pro X Superlight White,1,2.00,6,1.00
-csgo_pl_21969,800,1088.00,1000,,Logitech G Pro X Superlight Black,,1.36,6,0.82
-csgo_pl_14176,400,540,4000,0,VAXEE XE Wireless Pink,1,1.35,6,1
 csgo_pl_429,400,560,1000,1.05,Razer Deathadder V3 Pro Black,1,1.4,4,1
-csgo_pl_9960,400,640,4000,0,Razer DeathAdder V3 Pro Faker Edition,1,1.6,6,0.8
-csgo_pl_18053,400,760,1000,0,Logitech G Pro X Superlight Red,1,1.9,6,1
-csgo_pl_10394,400,680,1000,0,Logitech G Pro X Superlight White,1,1.7,6,1.00
-csgo_pl_22383,,,,,,,,,
-csgo_pl_19045,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1.00
-csgo_pl_15698,800,808,1000,0,Logitech G Pro X Superlight White,1,1.01,6,1.00
-csgo_pl_22965,,,,,,,,,
-csgo_pl_19686,400,708,1000,,Logitech G Pro X Superlight Black,,1.77,6,1
-csgo_pl_12521,800,1440,1000,0,Logitech G Pro X Superlight Red,1,1.80,6,1
-csgo_pl_12092,800,800,1000,0,Logitech G403 HERO,1,1,6,1
 csgo_pl_22613,800,560,2000,,Logitech G Pro X Superlight 2 Black,,0.7,6,1
-csgo_pl_14737,400,1000,1000,0,Logitech G Pro X Superlight Red,1,2.50,6,1.00
 csgo_pl_20394,,,,,,,,,
-csgo_pl_14736,400,520,1000,0,Logitech G Pro X Superlight Black,1,1.3,6,1
-csgo_pl_21708,800,1240,1000,0,Logitech G Pro X Superlight Red,1,1.55,6,0.9
-csgo_pl_23643,,,,,,,,,
-csgo_pl_20112,400,680,1000,0,Logitech G Pro X Superlight Black,1,1.7,6,1
-csgo_pl_22842,,,,,,,,,
-csgo_pl_25619,,,,,,,,,
-csgo_pl_20119,800,720,1000,,Logitech G Pro X Superlight White,,0.9,6,1
-csgo_pl_23600,,,,,,,,,
-csgo_pl_19187,800,1040,1000,0,ZOWIE EC3-CW,1,1.3,6,1.00
-csgo_pl_21983,800,680,1000,0,Logitech G Pro X Superlight Black,1,0.85,6,1.1
-csgo_pl_21163,800,440,1000,,ZOWIE EC2-CW,,0.55,6,1
 csgo_pl_21667,400,880,2000,,Logitech G Pro X Superlight 2 Black,,2.2,6,1
-csgo_pl_11840,400,580,1000,0,ZOWIE EC1,1,1.45,6,0.856
 csgo_pl_20357,400,680,1000,,Logitech G Pro X Superlight Magenta,,1.7,6,1
 csgo_pl_18506,800,1200,1000,0,Logitech G Pro X Superlight Magenta,1,1.5,6,1.16
-csgo_pl_15662,800,920,1000,0,Pulsar Xlite V2 Wireless,1,1.15,6,1.00
-csgo_pl_19645,400,880,1000,0,ZOWIE EC2-CW,1,2.2,6,1
-csgo_pl_20702,400,800,1000,0,,1,2,6,1
-csgo_pl_20895,400,848,1000,0,ZOWIE S2,1,2.12,6,1
-csgo_pl_21621,400,760,1000,0,ZOWIE EC2-C,1,1.9,6,1
-csgo_pl_24857,800,760,1000,,ZOWIE S1,,0.95,6,1
 csgo_pl_21816,800,1000.00,1000,,Logitech G Pro X Superlight Red,,1.25,6,1
 csgo_pl_19926,800,800,1000,0,Logitech G Pro X Superlight Black,1,1.00,6,1.00
 csgo_pl_19015,800,1040,1000,0,Logitech G403 HERO,1,1.3,6,1.00
 csgo_pl_22106,,,,,,,,,
 csgo_pl_17145,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.20,6,1.00
-csgo_pl_20301,400,664,2000,,Logitech G Pro X Superlight 2 Black,,1.66,6,1
-csgo_pl_22279,,,,,,,,,
-csgo_pl_9278,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.2,6,0.8
-csgo_pl_23766,400,800.00,1000,,DAREU AE6 Pro Black,,2,6,1
-csgo_pl_2553,400,824,1000,0,ZOWIE FK2-C,1,2.06,6,0.92
-csgo_pl_16599,400,840,1000,0,Logitech G Pro X Superlight White,1,2.1,6,1.1
-csgo_pl_15370,400,900,1000,0,FinalMouse Starlight-12,1,2.25,6,1
-csgo_pl_20104,400,720,1000,0,Logitech G Pro X Superlight Black,1,1.8,6,1
-csgo_pl_22921,,,,,,,,,
-csgo_pl_21665,,,,,,,,,
 csgo_pl_22860,800,880,1000,,Razer Viper V2 Pro Black,,1.1,6,0.818933027098955175
 csgo_pl_7443,400,800,1000,0,VAXEE ZYGEN NP-01,1,2.00,6,1.00
 csgo_pl_22760,,,,,,,,,
-csgo_pl_16487,400,720,1000,0,VAXEE OUTSET AX Funspark,1,1.8,6,1
 csgo_pl_24083,800,560,1000,0,Xtrfy M8 Black,1,0.7,6,1
-csgo_pl_8520,400,640,1000,0,VAXEE XE Orange,1,1.60,6,0.80
-csgo_pl_21763,400,840,1000,0,Razer Viper Ultimate,1,2.1,6,1
-csgo_pl_16820,400,1040,1000,0,ZOWIE EC2 White,1,2.60,6,1
 csgo_pl_8738,1600,1184,1000,0,Logitech G Pro X Superlight Black,1,0.74,6,0.8
-csgo_pl_11617,400,800,1000,0,ZOWIE FK1+-B,1,2.00,6,1.00
 csgo_pl_21037,800,880,1000,0,Logitech G Pro X Superlight White,1,1.1,6,1
 csgo_pl_20987,400,760,1000,0,Logitech G Pro X Superlight Black,1,1.9,6,1
 csgo_pl_23192,400,1236.00,4000,,Logitech G Pro X Superlight 2 Magenta,,3.09,6,1
@@ -177,65 +76,35 @@ csgo_pl_18714,,,,,,,,,
 csgo_pl_16816,800,960,1000,0,ZOWIE EC3-CW,1,1.2,6,1
 csgo_pl_19694,800,960,1000,0,Logitech G Pro X Superlight Magenta,1,1.20,6,1.00
 csgo_pl_5794,400,512,1000,0,Logitech G Pro X Superlight Black,1,1.28,6,1.10
-csgo_pl_14929,400,840,1000,0,Logitech G Pro X Superlight Red,1,2.10,6,1.00
 csgo_pl_22884,1000,920.00,8000,,Logitech G Pro X Superlight 2 Black,,0.92,6,0.9
-csgo_pl_15165,400,604,1000,0,Logitech G Pro X Superlight Red,1,1.51,6,1.2
-csgo_pl_14932,400,840,1000,0,Logitech G Pro X Superlight White,1,2.10,7,1.00
 csgo_pl_20425,400,852,1000,0,Razer Viper V2 Pro White,1,2.13,6,1.03
-csgo_pl_14148,400,888,1000,0,Logitech G Pro X Superlight Black,1,2.22,6,1.00
 csgo_pl_922,400,780,1000,0,Logitech G Pro X Superlight White,1,1.95,6,1.00
 csgo_pl_23372,400,732,1000,,Logitech G Pro X Superlight Black,,1.83,6,1
-csgo_pl_24283,,,,,,,,,
 csgo_pl_3849,400,760,1000,0,Logitech G Pro X Superlight Black,1,1.9,6,1
 csgo_pl_22914,,,,,,,,,
 csgo_pl_20879,800,544,1000,0,ZOWIE EC1,1,0.68,6,0.8
 csgo_pl_21012,,,,,,,,,
 csgo_pl_21159,,,,,,,,,
 csgo_pl_24332,,,,,,,,,
-csgo_pl_16486,400,700,1000,0,ZOWIE EC2-B,1,1.75,6,1.10
 csgo_pl_20358,800,560,1000,0,Logitech G Pro X Superlight White,1,0.7,6,1
 csgo_pl_20625,800,800,1000,0,Pulsar Xlite V2 Wireless,1,1,6,1
 csgo_pl_24203,,,,,,,,,
-csgo_pl_12810,400,468,1000,0,VAXEE OUTSET AX,1,1.17,6,0.80
-csgo_pl_11199,500,450,1000,0,Xtrfy M4,1,0.90,6,1.10
 csgo_pl_23459,,,,,,,,,
 csgo_pl_23295,400,568,1000,,Logitech G Pro X Superlight Black,,1.42,6,1
 csgo_pl_21113,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1
 csgo_pl_7687,400,720,500,1.05,VAXEE XE Wireless Blue,1,1.8,6,1.04
 csgo_pl_16717,700,1050,1000,0,SteelSeries Rival 3,1,1.5,6,0.7
 csgo_pl_8711,400,1000,1000,0,Glorious Model D,1,2.50,6,1.00
-csgo_pl_13249,800,680,1000,0,Razer Viper Mini Signature Edition,1,0.85,6,1
-csgo_pl_13578,800,576,1000,0,Logitech G Pro X Superlight Red,1,0.72,6,1.00
-csgo_pl_18749,800,880,1000,0,VAXEE ZYGEN NP-01,1,1.2,6,1
-csgo_pl_19509,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.20,6,1.00
-csgo_pl_21239,400,1236,1000,0,Logitech G Pro X Superlight Black,1,3.09,6,1
-csgo_pl_8371,400,680,1000,0,Razer Deathadder V3 Pro Black,1,1.7,6,1.00
-csgo_pl_9254,400,400,1000,0,ZOWIE FK1+,1,1,6,1.00
-csgo_pl_11630,400,1100,1000,0,Razer Deathadder V3 Pro White,1,2.75,6,1.00
-csgo_pl_21620,1000,1400,1000,,Logitech G300S,,1.4,6,1
-csgo_pl_21452,400,1200,1000,0,Logitech G Pro X Superlight Magenta,1,3,6,1
-csgo_pl_19869,400,1163.6,1000,0,Logitech G Pro X Superlight Magenta,1,2.909,6,1.20
 csgo_pl_20903,400,1120,1000,0,Logitech G Pro X Superlight Black,1,2.8,5,1
 csgo_pl_22570,,,,,,,,,
 csgo_pl_20185,,,,,,,,,
 csgo_pl_20607,,,,,Logitech G Pro X Superlight Black,,,6,
 csgo_pl_24863,800,416,1000,,Logitech G Pro X Superlight 2 Black,,0.52,6,1.1
 csgo_pl_19985,,,,,,,,,
-csgo_pl_21385,,,,,,,,,
-csgo_pl_19823,,,,,,,,,
-csgo_pl_24806,,,,,,,,,
-csgo_pl_21692,,,,,,,,,
-csgo_pl_16612,800,1240,1000,0,Logitech G Pro X Superlight Magenta,1,1.55,6,1.00
 csgo_pl_24168,,,,,,,,,
 csgo_pl_24282,,,,,,,,,
-csgo_pl_16147,400,560,1000,0,Glorious Model O Wireless,1,1.4,5,1
 csgo_pl_23415,,,,,,,,,
 csgo_pl_19592,400,920,1000,0,Logitech G Pro X Superlight White,1,2.3,6,1
-csgo_pl_7592,400,760,1000,0,Logitech G Pro X Superlight Magenta,1,1.90,6,1.00
-csgo_pl_8183,400,660,1000,0,Logitech G Pro X Superlight Red,1,1.65,6,0.8
-csgo_pl_21014,,,,,,,,,
-csgo_pl_22695,800,880,1000,,,,1.2,6,1
-csgo_pl_23397,800,604.00,4000,,,,0.755,6,1
 csgo_pl_7998,400,1236,1000,0,Logitech G Pro X Superlight White,1,3.09,6,1
 csgo_pl_8918,400,880,1000,0,ZOWIE EC2-CW,1,2.2,6,1.05
 csgo_pl_23140,,,,,,,,,
@@ -245,7 +114,6 @@ csgo_pl_9482,400,1040,1000,0,Logitech G Pro X Superlight White,1,2.6,6,1.3
 csgo_pl_17861,800,2000,1000,0,ZOWIE EC3-CW,1,2.5,6,1
 csgo_pl_9219,400,800,1000,0,ZOWIE EC2-A,1,2.00,6,1.00
 csgo_pl_8565,400,1520,1000,0,ZOWIE EC2 Tyloo,1,3.8,6,1.2
-csgo_pl_15914,800,1280,1000,0,Logitech G Pro X Superlight Black,1,1.6,6,1.00
 csgo_pl_7528,400,560,1000,0,VAXEE XE Wireless Orange,1,1.40,6,1.00
 csgo_pl_17803,400,520,1000,0,Logitech G Pro X Superlight Black,1,1.3,6,1
 csgo_pl_23046,,,,,,,,,
@@ -254,34 +122,16 @@ csgo_pl_24914,,,,,,,,,
 csgo_pl_16723,800,604,1000,,ZOWIE S2,,0.755,6,1
 csgo_pl_23338,400,640.00,1000,,,,1.6,6,0.797662
 csgo_pl_21199,600,552,1000,0,Logitech G Pro X Superlight Magenta,1,0.92,6,0.752412
-csgo_pl_10330,400,1108,1000,0,Logitech G Pro X Superlight Black,1,2.77,6,1.00
 csgo_pl_20090,400,604,1000,0,ZOWIE EC2-B Divina Blue,1,1.51,6,1
 csgo_pl_2898,400,640,1000,0,ZOWIE EC1,1,1.6,6,1
 csgo_pl_20300,800,680,1000,0,Logitech G Pro X Superlight Black,1,0.85,6,1
 csgo_pl_22702,,,,,,,,,
 csgo_pl_20309,,,,,,,,,
 csgo_pl_21715,400,640,1000,,Logitech G Pro X Superlight Black,,1.6,6,1.2
-csgo_pl_14494,400,1240,1000,0,Razer Deathadder V3 Pro White,1,3.1,6,1.00
-csgo_pl_20333,800,1240,1000,0,Logitech G Pro X Superlight Black,1,1.55,6,1
-csgo_pl_19711,800,1200.00,1000,,Razer Viper V3 Pro White,,1.5,6,1
-csgo_pl_17918,400,540,1000,,Logitech G Pro X Superlight 2 White,,1.6,6,1
-csgo_pl_14619,,,,,,,,,
-csgo_pl_22536,,,,,,,,,
-csgo_pl_23047,800,640,1000,,Razer DeathAdder V2,,0.8,6,1
-csgo_pl_18670,400,534.8,1000,0,Logitech G Pro X Superlight Black,1,1.337,6,1
-csgo_pl_22930,,,,,,,,,
-csgo_pl_20709,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1.3
 csgo_pl_22886,,,,,,,,,
-csgo_pl_23684,,,,,,,,,
 csgo_pl_23686,,,,,,,,,
 csgo_pl_24725,,,,,,,,,
 csgo_pl_19575,800,840,1000,0,Logitech G Pro X Superlight White,1,1.05,6,1.00
-csgo_pl_20558,,,,,,,,,
-csgo_pl_21170,,,,,,,,,
-csgo_pl_21921,,,,,,,,,
-csgo_pl_22911,800,880,1000,0,Razer Deathadder V3 Pro Black,1,1.1,6,1
-csgo_pl_21221,,,,,,,,,
-csgo_pl_16551,400,1168,1000,0,ZOWIE FK2-C,1,2.92,6,0.8
 csgo_pl_18744,400,880,1000,0,ZOWIE S2 Divina Pink,1,2.2,6,1
 csgo_pl_20254,400,600,1000,0,Logitech G Pro X Superlight Red,1,1.5,6,1
 csgo_pl_22922,800,1080,1000,0,ZOWIE EC2-CW,1,1.35,6,1
@@ -296,34 +146,17 @@ csgo_pl_8374,400,1200,1000,0,Logitech G Pro X Superlight Magenta,1,3,6,1.00
 csgo_pl_19064,800,720,1000,,ZOWIE EC2-CW,,0.9,6,1
 csgo_pl_20465,800,960,1000,0,Logitech G Pro X Superlight White,1,1.2,6,1
 csgo_pl_20878,800,960,1000,,,,1.2,6,1.2849
-csgo_pl_20451,,,,,,,,,
-csgo_pl_20992,,,,,,,,,
-csgo_pl_21155,,,,,,,,,
-csgo_pl_18554,,,,,,,,,
 csgo_pl_24749,,,,,,,,,
 csgo_pl_21571,,,,,,,,,
 csgo_pl_21379,400,940,1000,0,Logitech G Pro X Superlight Magenta,1,2.35,6,1
 csgo_pl_24104,400,840.00,4000,,Logitech G Pro X Superlight 2 Magenta,,2.1,6,1
 csgo_pl_16731,400,680.00,1000,,Logitech G Pro Wireless,,1.7,6,0.81
 csgo_pl_21574,400,640.00,1000,,Sprime PM1,,1.6,7,1
-csgo_pl_14390,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.2,6,1
-csgo_pl_17181,800,1360,4000,,Razer Deathadder V3 Pro Black,,1.7,6,1
-csgo_pl_22182,,,,,,,,,
-csgo_pl_24772,,,,,,,,,
-csgo_pl_22777,,,,,,,,,
-csgo_pl_12822,1600,768,1000,0,VAXEE XE Wireless Black,1,0.4775,6,1
-csgo_pl_22564,400,560,1000,,ZOWIE EC2-CW,,1.4,6,1
-csgo_pl_10566,400,1400,1000,0,VAXEE OUTSET AX Yellow,1,3.5,6,1.00
-csgo_pl_20183,400,720,1000,,VAXEE XE Wireless Orange,,1.8,6,1
-csgo_pl_22371,Unknown,Unknown,Unknown,,,,Unknown,Unknown,Unknown
 csgo_pl_4679,400,680,4000,0,Razer Deathadder V3 Pro White,1,1.7,6,1.00
-csgo_pl_11140,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.20,6,1.00
 csgo_pl_17384,1200,1200,1000,0,Razer Deathadder V3 Pro Black,1,1,7,0.7
 csgo_pl_18214,,,,,,,,,
 csgo_pl_20462,400,1100,1000,0,Logitech G Pro X Superlight Black,1,2.75,6,1
 csgo_pl_8726,400,690,1000,0,ZOWIE EC2-B Divina Blue,1,1.725,6,1.00
-csgo_pl_20883,,,,,,,,,
-csgo_pl_21445,,,,,,,,,
 csgo_pl_23835,,,,,,,,,
 csgo_pl_24807,,,,,,,,,
 csgo_pl_20417,800,1080,1000,,Logitech G Pro X Superlight Black,,1.35,6,1
@@ -331,247 +164,70 @@ csgo_pl_21779,,,,,,,,,
 csgo_pl_11995,800,720,1000,0,ZOWIE EC3-C,1,0.9,6,1
 csgo_pl_13602,400,1236,1000,0,ZOWIE EC2-CW,1,3.09,8,1.00
 csgo_pl_20941,2300,966,1000,0,Logitech G Pro X Superlight Black,1,0.42,6,1
-csgo_pl_14175,500,1050,1000,0,Logitech G Pro X Superlight Black,1,2.1,6,1.10
 csgo_pl_22350,,,,,,,,,
 csgo_pl_23927,,,,,,,,,
-csgo_pl_17378,400,1480,1000,0,ZOWIE FK2,1,3.7,6,1
-csgo_pl_16847,400,1080,1000,0,Razer Deathadder V3 Pro Black,1,2.7,6,1
-csgo_pl_18838,400,560,1000,0,Razer Deathadder V3 Pro White,1,1.4,6,1
-csgo_pl_8311,,,,,,,,,
 csgo_pl_22135,1600,1320.00,2000,,Razer Viper V3 Pro White,,0.825,6,1
 csgo_pl_19920,800,704,1000,0,ZOWIE S2 Divina Blue,1,0.88,6,1
 csgo_pl_22325,,,,,,,,,
 csgo_pl_23317,,,,,,,,,
 csgo_pl_23319,,,,,,,,,
 csgo_pl_21266,,,,,,,,,
-csgo_pl_20385,800,708,1000,,Logitech G Pro X Superlight Black,,0.885,6,1
-csgo_pl_19692,800,1280,1000,0,Logitech G Pro X Superlight Magenta,1,1.6,6,1.00
-csgo_pl_18717,400,540,1000,0,Logitech G Pro X Superlight Black,1,1.35,6,0.70
-csgo_pl_11154,800,800,1000,0,VAXEE XE Wireless Orange,1,1.00,6,0.85
-csgo_pl_21286,800,2000.00,2000,,,,2.5,6,1
-csgo_pl_23858,,,,,,,,,
-csgo_pl_22076,,,,,,,,,
-csgo_pl_19874,,,,,,,,,
-csgo_pl_24173,,,,,,,,,
-csgo_pl_15072,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2,6,1
-csgo_pl_19957,400,800,1000,0,Logitech G Pro X Superlight Red,1,2,6,1
-csgo_pl_18638,800,1040,500,0,Logitech G Pro X Superlight White,1,1.3,6,1
-csgo_pl_20703,,,,,,,,,
-csgo_pl_9656,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
-csgo_pl_20889,,,,,,,,,
 csgo_pl_19698,400,880,1000,0,Logitech G Pro X Superlight White,1,2.2,6,1.2
-csgo_pl_12781,400,600,1000,0,VAXEE XE Wireless Black,1,1.5,6,1.10
-csgo_pl_16705,400,560,1000,0,Logitech G Pro X Superlight White,1,1.4,6,1.2
-csgo_pl_20170,800,920,1000,0,Logitech G Pro X Superlight Black,1,1.15,6,1
-csgo_pl_21164,,,,,,,,,
-csgo_pl_21233,,,,,,,,,
-csgo_pl_19750,400,688,1000,0,Logitech G Pro X Superlight Red,1,1.72,6,1.00
-csgo_pl_20085,400,1000,1000,,Logitech G Pro X Superlight Black,,2.5,6,1
-csgo_pl_20026,1600,2192,1000,,ZOWIE EC1-CW,,1.37,6,1
-csgo_pl_18865,400,1224,1000,0,ZOWIE EC2-C,1,3.06,6,1
-csgo_pl_11217,,,,,,,,,
-csgo_pl_15385,,,,,,,,,
-csgo_pl_20114,,,,,,,,,
 csgo_pl_21371,,,,,,,,,
-csgo_pl_21657,,,,,,,,,
-csgo_pl_23770,,,,,,,,,
-csgo_pl_23771,,,,,,,,,
-csgo_pl_20700,1600,1440,1000,0,Logitech G Pro X Superlight Magenta,1,0.9,6,1
-csgo_pl_13239,400,880,1000,0,VAXEE XE Wireless Black,1,2.20,6,1.00
-csgo_pl_23477,,,,,,,,,
-csgo_pl_12708,400,520,1000,0,ZOWIE ZA12-C,1,1.3,6,1.8
 csgo_pl_19733,800,1040,1000,0,Logitech G Pro X Superlight White,1,1.3,6,1
 csgo_pl_22361,400,1320,1000,,ZOWIE EC2-CW,,3.4,6,1
 csgo_pl_20123,400,1200,1000,0,Razer Viper V2 Pro Black,1,3,6,1
 csgo_pl_23274,,,,,,,,,
 csgo_pl_8261,,,,,,,,,
 csgo_pl_24581,,,,,,,,,
-csgo_pl_16029,400,580,1000,0,Razer Deathadder V3 Pro Black,1,1.45,6,1.30
-csgo_pl_22759,,,,,,,,,
-csgo_pl_13670,400,1236,1000,0,Logitech G Pro X Superlight Red,1,3.09,6,1.00
-csgo_pl_9483,,,,,,,,,
-csgo_pl_18743,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.2,6,1.1
-csgo_pl_20522,,,,,,,,,
-csgo_pl_23551,,,,,,,,,
-csgo_pl_16645,,,,,,,,,
-csgo_pl_14010,,,,,,,,,
-csgo_pl_17132,,,,,,,,,
-csgo_pl_20521,,,,,,,,,
-csgo_pl_21284,,,,,,,,,
 csgo_pl_23550,,,,,,,,,
 csgo_pl_20003,,,,,,,,,
 csgo_pl_20244,,,,,,,,,
-csgo_pl_14990,,,,,,,,,
-csgo_pl_14294,,,,,,,,,
 csgo_pl_20086,,,,,,,,,
-csgo_pl_25104,,,,,,,,,
-csgo_pl_19114,800,640,1000,0,Logitech G Pro Wireless,1,0.8,6,1
-csgo_pl_17504,400,680,1000,0,Logitech G703,1,1.7,6,1
-csgo_pl_4829,800,904,1000,0,Logitech G703,1,1.13,6,1
-csgo_pl_20413,400,920,1000,0,Logitech G Pro X Superlight Magenta,1,2.3,6,1
-csgo_pl_16555,800,1200,1000,0,ZOWIE EC2-C,1,1.50,6,1
-csgo_pl_16921,400,800,1000,0,VAXEE XE Wireless Blue,1,2.00,6,1
-csgo_pl_18510,,,,,,,,,
-csgo_pl_20387,,,,,,,,,
-csgo_pl_3459,800,1000,1000,0,Logitech G Pro Wireless,1,1.25,6,1.00
-csgo_pl_20534,,,,,,,,,
-csgo_pl_22040,,,,,,,,,
-csgo_pl_22927,,,,,,,,,
-csgo_pl_23302,,,,,,,,,
-csgo_pl_24425,,,,,,,,,
-csgo_pl_20033,400,840,1000,0,Logitech G Pro X Superlight Black,1,2.1,6,1.2
-csgo_pl_16753,1000,1140,1000,,Logitech G Pro X Superlight Black,,1.14,6,1
-csgo_pl_24113,,,,,,,,,
-csgo_pl_22948,,,,,,,,,
-csgo_pl_13281,800,720,500,0,VAXEE NP-01S Yellow,1,0.9,6,1
-csgo_pl_13982,800,560,1000,0,Logitech G Pro X Superlight Black,1,0.70,6,1.00
-csgo_pl_13240,400,548,1000,0,Logitech G Pro X Superlight Black,1,1.37,6,1.00
-csgo_pl_11498,800,640,1000,0,Logitech G Pro X Superlight Black,1,0.80,6,0.98
-csgo_pl_16948,800,800,1000,0,Logitech G Pro X Superlight Black,1,1,6,1
-csgo_pl_18322,,,,,,,,,
-csgo_pl_20690,,,,,,,,,
-csgo_pl_20885,,,,,,,,,
-csgo_pl_16835,400,540,1000,,Razer Deathadder V3 Pro Black,,1.35,6,1
-csgo_pl_23461,,,,,,,,,
 csgo_pl_7028,400,800,1000,0,ZOWIE EC2-B,1,2.00,6,0.95
 csgo_pl_19681,,,,,,,,,
-csgo_pl_21825,,,,,,,,,
 csgo_pl_20808,,,,,,,,,
 csgo_pl_24304,,,,,,,,,
-csgo_pl_17675,,,,,,,,,
-csgo_pl_18163,,,,,,,,,
-csgo_pl_22419,3200,4800.00,2000,,Logitech G Pro X Superlight 2 Black,,1.5,6,0.95
-csgo_pl_18120,400,1300,1000,0,Logitech G Pro X Superlight White,1,3.25,6,1.2
 csgo_pl_17147,400,920,1000,0,ZOWIE EC2-CW,1,2.3,6,1
-csgo_pl_19229,,,,,,,,,
 csgo_pl_19537,,,,,,,,,
 csgo_pl_25510,,,,,,,,,
-csgo_pl_22414,,,,,,,,,
 csgo_pl_19827,,,,,,,,,
 csgo_pl_18447,,,,,,,,,
 csgo_pl_18671,,,,,,,,,
 csgo_pl_19703,,,,,,,,,
 csgo_pl_20207,,,,,Logitech G Pro X Superlight Magenta,,,,6
 csgo_pl_20402,800,880,2000,,Logitech G Pro X Superlight 2 Black,,1.1,6,1
-csgo_pl_9115,1600,1040,4000,0,Razer DeathAdder V3,1,0.65,6,6
-csgo_pl_10588,800,831.2,500,0,Logitech G Pro X Superlight White,1,0.95,6,1
-csgo_pl_11139,400,760,1000,0,Logitech G Pro X Superlight Magenta,1,1.90,6,1.00
-csgo_pl_18545,,,,,,,,,
-csgo_pl_12793,,,,,,,,,
-csgo_pl_19602,,,,,,,,,
-csgo_pl_20429,,,,,,,,,
-csgo_pl_13298,,,,,,,,,
-csgo_pl_22137,,,,,,,,,
-csgo_pl_22879,,,,,,,,,
-csgo_pl_17508,400,600,1000,,Zowie FK2-B,,1.5,6,1
-csgo_pl_22803,,,,,,,,,
-csgo_pl_20430,400,676,1000,,Logitech G Pro X Superlight Red,,1.69,6,1
-csgo_pl_24176,800,1040.00,1000,,Logitech G Pro X Superlight 2 Black,,1.3,6,1
-csgo_pl_15203,,,,,,,,,
-csgo_pl_20245,400,920.00,1000,,,,2.3,6,1
-csgo_pl_20958,,,,,,,,,
-csgo_pl_21263,3200,1760,1000,0,ZOWIE EC2-B Divina Pink,1,0.55,6,1
-csgo_pl_22703,,,,,,,,,
-csgo_pl_18119,,,,,,,,,
-csgo_pl_20434,,,,,,,,,
-csgo_pl_21108,,,,,,,,,
-csgo_pl_21109,,,,,,,,,
-csgo_pl_15778,400,940,4000,0,Logitech G Pro X Superlight White,1,2.35,5,1
 csgo_pl_24952,500,1150.00,1000,,Razer DeathAdder V3 HyperSpeed,,2.3,6,1
 csgo_pl_23637,800,1176.00,1000,,Logitech G Pro X Superlight 2 White,,1.47,6,1
 csgo_pl_8789,400,620,1000,0,Razer Deathadder V3 Pro Black,1,1.55,6,0.80
 csgo_pl_24292,,,,,,,,,
 csgo_pl_24950,,,,,,,,,
-csgo_pl_24457,400,720.00,1000,,Razer Viper V3 Pro White,,1.8,6,1
-csgo_pl_21988,800,640.00,2000,,Razer Viper V3 Pro Black,,0.8,6,1
-csgo_pl_25254,400,572.00,1000,,Lamzu Atlantis OG V2 Pro Polar White,,1.43,6,1
-csgo_pl_25255,1600,756.80,1000,,Logitech G Pro X Superlight 2 Magenta,,0.473,6,1
 csgo_pl_25253,,,,,,,,,
-csgo_pl_11205,400,960,1000,0,Logitech G Pro X Superlight Black,1,2.40,5,1.00
-csgo_pl_16102,,,,,,,,,
-csgo_pl_17003,,,,,,,,,
-csgo_pl_20683,,,,,,,,,
-csgo_pl_23237,,,,,,,,,
-csgo_pl_12004,400,880,1000,,ZOWIE EC2-B,1,2.20,,1.00
 csgo_pl_19673,400,760,1000,0,VAXEE XE Wireless Black,1,1.9,6,1.00
 csgo_pl_25110,,,,,,,,,
 csgo_pl_21139,,,,,,,,,
-csgo_pl_22039,400,888,1000,,Logitech G Pro X Superlight 2 Black,,2.22,6,1
 csgo_pl_19664,,,,,,,,,
-csgo_pl_21513,,,,,,,,,
 csgo_pl_24348,,,,,,,,,
 csgo_pl_24349,,,,,,,,,
-csgo_pl_23764,,,,,,,,,
-csgo_pl_20504,,,,,,,,,
-csgo_pl_20956,,,,,,,,,
-csgo_pl_22189,,,,,,,,,
-csgo_pl_22326,,,,,,,,,
-csgo_pl_22459,,,,,,,,,
 csgo_pl_23545,,,,,,,,,
 csgo_pl_24704,,,,,,,,,
 csgo_pl_24997,,,,,,,,,
 csgo_pl_19725,400,800,4000,0,Razer Deathadder V3 Pro Black,1,2,6,1.2
 csgo_pl_22008,,,,,,,,,
-csgo_pl_20197,,,,,,,,,
-csgo_pl_22535,,,,,,,,,
-csgo_pl_23303,,,,,,,,,
 csgo_pl_17937,800,648,1000,0,Razer Deathadder V3 Pro White,1,0.81,6,1
 csgo_pl_8507,400,1000,1000,0,Razer Viper Ultimate,1,2.50,6,0.80
-csgo_pl_14218,800,1200,500,0,Razer Deathadder V3 Pro Black,1,1.50,6,1.20
 csgo_pl_20253,400,600,2000,,Logitech G Pro X Superlight 2 Black,,1.5,6,1
-csgo_pl_24281,,,,,,,,,
-csgo_pl_25585,,,,,,,,,
-csgo_pl_24690,,,,,,,,,
 csgo_pl_21575,,,,,,,,,
 csgo_pl_22563,,,,,,,,,
-csgo_pl_19171,,,,,,,,,
-csgo_pl_9911,400,800,1000,0,ZOWIE FK1+-B,1,2.00,6,1.2
-csgo_pl_20870,800,520,1000,0,Logitech G Pro X Superlight Black,1,0.65,6,1
-csgo_pl_19815,,,,,,,,,
-csgo_pl_12945,,,,,,,,,
-csgo_pl_5351,,,,,,,,,
-csgo_pl_21302,,,,,,,,,
-csgo_pl_21783,,,,,,,,,
-csgo_pl_11276,,,,,,,,,
-csgo_pl_20284,400,400,1000,0,Razer Viper V2 Pro White,1,1,6,1
-csgo_pl_23767,,,,,,,,,
-csgo_pl_24243,400,580,4000,,Razer Viper V3 Pro Black,,1.45,6,1
-csgo_pl_24244,1600,888,4000,,Razer Viper V3 Pro Black,,0.555,6,1
 csgo_pl_6593,400,880,4000,0,Razer Deathadder V3 Pro Black,1,2.20,6,1.00
-csgo_pl_16817,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
-csgo_pl_18610,,,,,,,,,
-csgo_pl_14394,400,600,1000,0,ZOWIE EC2,1,1.5,6,1
-csgo_pl_19972,,,,,,,,,
-csgo_pl_15573,,,,,,,,,
-csgo_pl_17116,,,,,,,,,
-csgo_pl_18294,,,,,,,,,
-csgo_pl_21117,,,,,,,,,
-csgo_pl_21337,,,,,,,,,
 csgo_pl_19177,,,,,,,,,
 csgo_pl_22552,,,,,,,,,
-csgo_pl_12102,,,,,,,,,
 csgo_pl_20572,,,,,,,,,
-csgo_pl_15176,,,,,,,,,
-csgo_pl_16971,,,,,,,,,
-csgo_pl_20158,,,,,,,,,
-csgo_pl_21213,,,,,,,,,
-csgo_pl_21368,,,,,,,,,
-csgo_pl_9626,400,800,1000,0,Xtrfy M8 Frosty Purple,1,2,6,1
 csgo_pl_24991,,,,,,,,,
 csgo_pl_24989,,,,,,,,,
 csgo_pl_24737,,,,,,,,,
 csgo_pl_24277,,,,,,,,,
 csgo_pl_22875,,,,,,,,,
-csgo_pl_22945,,,,,,,,,
-csgo_pl_20422,800,1000,1000,0,Logitech G Pro X Superlight Black,1,1.25,6,1
-csgo_pl_24672,,,,,,,,,
-csgo_pl_24246,,,,,,,,,
-csgo_pl_20421,,,,,,,,,
-csgo_pl_20807,,,,,,,,,
-csgo_pl_20258,,,,,,,,,
-csgo_pl_24747,,,,,,,,,
-csgo_pl_23596,,,,,,,,,
-csgo_pl_16558,,,,,,,,,
 csgo_pl_25332,,,,,,,,,
 csgo_pl_25095,,,,,,,,,
 csgo_pl_22048,,,,,,,,,
@@ -586,37 +242,13 @@ csgo_pl_11940,400,800,1000,0,Razer Deathadder V3 Pro White,1,2.00,6,0.90
 csgo_pl_22537,,,,,,,,,
 csgo_pl_23292,,,,,,,,,
 csgo_pl_23541,,,,,,,,,
-csgo_pl_21369,,,,,,,,,
-csgo_pl_24171,,,,,,,,,
-csgo_pl_24818,,,,,,,,,
-csgo_pl_20199,,,,,,,,,
 csgo_pl_24172,,,,,,,,,
-csgo_pl_9818,400,560,1000,,ZOWIE EC2-CW,,1.4,6,0.8
-csgo_pl_22144,,,,,,,,,
 csgo_pl_21065,,,,,,,,,
 csgo_pl_22649,,,,,,,,,
 csgo_pl_21650,,,,,,,,,
 csgo_pl_21651,,,,,,,,,
 csgo_pl_19617,800,1080,1000,0,,1,1.35,6,1
-csgo_pl_22333,,,,,,,,,
-csgo_pl_11141,400,952,1000,0,ZOWIE EC3-C,1,2.38,6,1.00
-csgo_pl_23457,,,,,,,,,
-csgo_pl_22415,,,,,,,,,
 csgo_pl_24805,,,,,,,,,
-csgo_pl_2131,1800,1125,1000,0,Razer Deathadder 2013,0,2.50,3,1.00
-csgo_pl_18240,,,,,,,,,
-csgo_pl_20110,800,800,1000,0,Pwnage Ultra Custom Wireless Ergo,1,1,6,1
-csgo_pl_20228,,,,,,,,,
-csgo_pl_19614,,,,,,,,,
-csgo_pl_17039,,,,,,,,,
-csgo_pl_20268,,,,,,,,,
-csgo_pl_20689,,,,,,,,,
-csgo_pl_24091,,,,,,,,,
-csgo_pl_19872,,,,,,,,,
-csgo_pl_22878,,,,,,,,,
-csgo_pl_24568,,,,,,,,,
-csgo_pl_23762,,,,,,,,,
-csgo_pl_22880,,,,,,,,,
 csgo_pl_25807,,,,,,,,,
 csgo_pl_23001,,,,,,,,,
 csgo_pl_24858,,,,,,,,,
@@ -624,55 +256,22 @@ csgo_pl_24855,,,,,,,,,
 csgo_pl_24644,,,,,,,,,
 csgo_pl_7131,810,668.25,1000,0,Logitech G Pro X Superlight White,0,1.10,5,1.1
 csgo_pl_9686,800,950,1000,0,Logitech MX518 HERO,1,1.1875,4,1.00
-csgo_pl_18223,,,,,,,,,
-csgo_pl_19763,400,760,1000,0,ZOWIE S2,1,1.9,6,1
 csgo_pl_22680,,,,,,,,,
-csgo_pl_20340,,,,,,,,,
-csgo_pl_20336,,,,,,,,,
-csgo_pl_20339,,,,,,,,,
-csgo_pl_20908,,,,,,,,,
-csgo_pl_22192,,,,,,,,,
-csgo_pl_17028,,,,,,,,,
-csgo_pl_10827,400,800,1000,0,ZOWIE EC2,1,2.00,6,1.00
-csgo_pl_22126,,,,,,,,,
-csgo_pl_13287,,,,,,,,,
-csgo_pl_21099,,,,,,,,,
-csgo_pl_22364,,,,,,,,,
 csgo_pl_22957,,,,,,,,,
-csgo_pl_24556,,,,,,,,,
 csgo_pl_24284,,,,,,,,,
-csgo_pl_18891,,,,,,,,,
-csgo_pl_22956,,,,,,,,,
-csgo_pl_20897,400,632,4000,,Razer Deathadder V3 Pro Black,,1.58,6,1
-csgo_pl_22362,,,,,,,,,
-csgo_pl_21100,,,,,,,,,
-csgo_pl_19538,,,,,,,,,
-csgo_pl_21428,,,,,,,,,
-csgo_pl_22908,,,,,,,,,
 csgo_pl_23834,,,,,,,,,
-csgo_pl_24124,,,,,,,,,
 csgo_pl_22706,,,,,,,,,
 csgo_pl_23151,,,,,,,,,
 csgo_pl_23589,,,,,,,,,
 csgo_pl_22191,,,,,,,,,
 csgo_pl_24204,,,,,,,,,
-csgo_pl_2544,,,,,,,,,
 csgo_pl_19975,,,,,,,,,
-csgo_pl_22423,,,,,,,,,
-csgo_pl_23587,,,,,,,,,
-csgo_pl_24716,,,,,,,,,
-csgo_pl_12872,,,,,,,,,
-csgo_pl_18736,,,,,,,,,
-csgo_pl_23346,,,,,,,,,
-csgo_pl_22629,,,,,,,,,
 csgo_pl_20881,,,,,,,,,
-csgo_pl_12731,800,800,1000,0,Logitech G Pro X Superlight White,1,1,6,1
 csgo_pl_19044,400,680,1000,0,ZOWIE EC2-CW,1,1.7,6,1
 csgo_pl_20282,400,540,1000,0,ZOWIE ZA12-B,1,1.35,6,1
 csgo_pl_21815,800,840.00,1000,,Logitech G Pro X Superlight Black,,1.05,6,1.05
 csgo_pl_19297,,,,,,,,,
 csgo_pl_24817,,,,,,,,,
-csgo_pl_16415,400,880,1000,0,Logitech G Pro X Superlight Magenta,1,2.20,6,1.00
 csgo_pl_21686,,,,,,,,,
 csgo_pl_24190,,,,,,,,,
 csgo_pl_3669,800,720,500,0,Logitech G Pro X Superlight White,1,0.90,6,1.00
@@ -685,36 +284,20 @@ csgo_pl_24139,,,,,,,,,
 csgo_pl_25041,,,,,,,,,
 csgo_pl_25208,,,,,,,,,
 csgo_pl_24634,,,,,,,,,
-csgo_pl_21365,,,,,,,,,
-csgo_pl_21192,,,,,,,,,
-csgo_pl_25608,,,,,,,,,
-csgo_pl_25609,,,,,,,,,
-csgo_pl_24569,,,,,,,,,
 csgo_pl_23660,,,,,,,,,
 csgo_pl_23084,,,,,,,,,
 csgo_pl_22642,,,,,,,,,
 csgo_pl_21693,,,,,,,,,
 csgo_pl_25856,,,,,,,,,
-csgo_pl_15060,,,,,,,,,
 csgo_pl_24303,,,,,,,,,
 csgo_pl_21396,,,,,,,,,
 csgo_pl_18150,,,,,,,,,
-csgo_pl_15861,,,,,,,,,
-csgo_pl_23304,,,,,,,,,
-csgo_pl_24021,,,,,,,,,
-csgo_pl_25010,,,,,,,,,
-csgo_pl_25011,,,,,,,,,
 csgo_pl_9571,400,680,1000,,ZOWIE EC2-CW,,1.7,6,1
-csgo_pl_14744,,,,,,,,,
-csgo_pl_20204,,,,,,,,,
-csgo_pl_20215,,,,,,,,,
-csgo_pl_21093,,,,,,,,,
 csgo_pl_24319,,,,,,,,,
 csgo_pl_25077,,,,,,,,,
 csgo_pl_24900,,,,,,,,,
 csgo_pl_25345,,,,,,,,,
 csgo_pl_24406,,,,,,,,,
-csgo_pl_17478,,,,,,,,,
 csgo_pl_23412,,,,,,,,,
 csgo_pl_24524,,,,,,,,,
 csgo_pl_24946,,,,,,,,,
@@ -724,50 +307,22 @@ csgo_pl_24748,,,,,,,,,
 csgo_pl_24305,,,,,,,,,
 csgo_pl_24330,,,,,,,,,
 csgo_pl_22918,,,,,,,,,
-csgo_pl_24995,,,,,,,,,
-csgo_pl_21931,,,,,,,,,
-csgo_pl_14236,,,,,,,,,
-csgo_pl_9325,,,,,,,,,
 csgo_pl_25870,,,,,,,,,
 csgo_pl_24396,,,,,,,,,
 csgo_pl_24513,,,,,,,,,
 csgo_pl_24850,,,,,,,,,
 csgo_pl_18146,,,,,,,,,
-csgo_pl_12877,,,,,,,,,
-csgo_pl_14333,,,,,,,,,
-csgo_pl_20527,,,,,,,,,
 csgo_pl_21395,,,,,,,,,
-csgo_pl_24920,,,,,,,,,
-csgo_pl_24924,,,,,,,,,
-csgo_pl_23471,,,,,,,,,
 csgo_pl_23334,,,,,,,,,
-csgo_pl_22811,,,,,,,,,
-csgo_pl_22810,,,,,,,,,
 csgo_pl_24276,,,,,,,,,
 csgo_pl_16902,,,,,,,,,
 csgo_pl_21584,,,,,,,,,
 csgo_pl_23376,,,,,,,,,
 csgo_pl_24660,,,,,,,,,
 csgo_pl_24869,,,,,,,,,
-csgo_pl_24528,,,,,,,,,
-csgo_pl_20330,,,,,,,,,
-csgo_pl_23690,,,,,,,,,
-csgo_pl_24234,,,,,,,,,
-csgo_pl_23088,,,,,,,,,
-csgo_pl_21700,,,,,,,,,
-csgo_pl_22964,,,,,,,,,
-csgo_pl_6553,,,,,,,,,
 csgo_pl_17215,,,,,,,,,
-csgo_pl_11013,,,,,,,,,
-csgo_pl_13077,400,560,1000,0,Logitech G Pro X Superlight Black,1,1.4,6,1
-csgo_pl_13170,400,1236.00,1000,,Logitech G Pro X Superlight Black,,3.09,6,1.3
 csgo_pl_21381,,,,,,,,,
 csgo_pl_22950,400,600,1000,,Logitech G Pro X Superlight Magenta,,1.5,6,2
-csgo_pl_15437,,,,,,,,,
-csgo_pl_12612,,,,,,,,,
-csgo_pl_15818,,,,,,,,,
-csgo_pl_15821,400,580,1000,0,Logitech G Pro X Superlight Red,1,1.45,6,1.10
-csgo_pl_23469,,,,,,,,,
 csgo_pl_24847,,,,,,,,,
 csgo_pl_25538,,,,,,,,,
 csgo_pl_25539,,,,,,,,,
@@ -788,24 +343,10 @@ csgo_pl_23136,,,,,,,,,
 csgo_pl_22589,,,,,,,,,
 csgo_pl_24667,,,,,,,,,
 csgo_pl_8193,,,,,,,,,
-csgo_pl_12157,,,,,,,,,
 csgo_pl_21335,,,,,,,,,
-csgo_pl_22482,,,,,,,,,
-csgo_pl_24970,,,,,,,,,
-csgo_pl_24358,,,,,,,,,
-csgo_pl_22866,,,,,,,,,
-csgo_pl_19284,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1
-csgo_pl_24325,,,,,,,,,
-csgo_pl_24810,,,,,,,,,
 csgo_pl_284,400,664.4,1000,0,Razer DeathAdder Elite,0,1.661,6,1
-csgo_pl_9896,400,800,1000,0,ZOWIE EC2,1,2.00,6,1.00
-csgo_pl_13718,800,760,1000,0,Razer DeathAdder V2,1,0.95,6,1
-csgo_pl_13749,400,880,1000,0,ZOWIE EC2 RED V2,1,2.2,6,1
 csgo_pl_22904,,,,,,,,,
-csgo_pl_13679,,,,,,,,,
-csgo_pl_17113,400,1250,1000,1.05,ZOWIE EC2-B Divina Blue,1,3.125,6,1
 csgo_pl_25460,,,,,,,,,
-csgo_pl_20926,400,880.00,1000,,ZOWIE EC2-CW,,2.2,6,1
 csgo_pl_20169,,,,,,,,,
 csgo_pl_24310,,,,,,,,,
 csgo_pl_24976,,,,,,,,,
@@ -813,56 +354,31 @@ csgo_pl_24977,,,,,,,,,
 csgo_pl_24975,,,,,,,,,
 csgo_pl_22413,,,,,,,,,
 csgo_pl_25105,,,,,,,,,
-csgo_pl_17997,,,,,,,,,
-csgo_pl_19086,,,,,,,,,
 csgo_pl_25106,,,,,,,,,
 csgo_pl_23549,,,,,,,,,
 csgo_pl_25660,,,,,,,,,
-csgo_pl_21706,,,,,,,,,
-csgo_pl_23768,,,,,,,,,
-csgo_pl_24270,,,,,,,,,
 csgo_pl_25245,,,,,,,,,
 csgo_pl_20281,800,720,1000,0,Razer Deathadder V3 Pro White,1,0.9,6,1
 csgo_pl_20283,800,800,1000,0,Logitech G Pro X Superlight Magenta,1,1,6,0.9
-csgo_pl_22385,,,,,,,,,
-csgo_pl_23614,,,,,,,,,
-csgo_pl_24242,800,720,2000,,Logitech G Pro X Superlight 2 White,,0.9,5,1
 csgo_pl_20320,,,,,,,,,
 csgo_pl_21463,,,,,,,,,
 csgo_pl_23597,,,,,,,,,
 csgo_pl_23824,,,,,,,,,
 csgo_pl_24016,,,,,,,,,
 csgo_pl_21909,,,,,,,,,
-csgo_pl_22430,,,,,,,,,
-csgo_pl_22883,,,,,,,,,
-csgo_pl_22961,,,,,,,,,
-csgo_pl_25423,,,,,,,,,
 csgo_pl_23015,,,,,,,,,
 csgo_pl_25484,,,,,,,,,
 csgo_pl_25487,,,,,,,,,
 csgo_pl_22940,800,800,4000,,Logitech G Pro X Superlight Black,,1,6,1
 csgo_pl_24102,,,,,,,,,
-csgo_pl_24462,,,,,,,,,
 csgo_pl_20437,,,,,,,,,
 csgo_pl_20877,,,,,,,,,
 csgo_pl_22762,,,,,,,,,
 csgo_pl_22874,,,,,,,,,
-csgo_pl_11847,,,,,,,,,
-csgo_pl_25138,,,,,,,,,
-csgo_pl_16564,,,,,,,,,
-csgo_pl_21971,,,,,,,,,
-csgo_pl_19738,800,800,1000,0,Logitech G Pro X Superlight Black,1,1.00,6,0.70
 csgo_pl_7168,800,960,1000,0,Xtrfy M8 Black,1,1.20,6,1.00
-csgo_pl_22481,,,,,,,,,
 csgo_pl_20482,400,800,1000,0,,1,2,6,1.1
-csgo_pl_15118,,,,,,,,,
 csgo_pl_21143,,,,,,,,,
-csgo_pl_22474,,,,,,,,,
 csgo_pl_22475,,,,,,,,,
-csgo_pl_23480,,,,,,,,,
-csgo_pl_24905,,,,,,,,,
-csgo_pl_23141,,,,,,,,,
-csgo_pl_20750,,,,,,,,,
 csgo_pl_23559,,,,,,,,,
 csgo_pl_23640,,,,,,,,,
 csgo_pl_23892,,,,,,,,,
@@ -880,30 +396,15 @@ csgo_pl_24170,,,,,,,,,
 csgo_pl_24575,,,,,,,,,
 csgo_pl_25060,,,,,,,,,
 csgo_pl_25478,,,,,,,,,
-csgo_pl_21669,,,,,,,,,
-csgo_pl_14799,,,,,,,,,
-csgo_pl_20573,,,,,,,,,
-csgo_pl_21813,,,,,,,,,
-csgo_pl_24238,,,,,,,,,
 csgo_pl_15588,,,,,,,,,
 csgo_pl_23744,,,,,,,,,
 csgo_pl_23956,,,,,,,,,
 csgo_pl_25122,,,,,,,,,
-csgo_pl_21038,,,,,,,,,
-csgo_pl_23829,,,,,,,,,
-csgo_pl_24717,,,,,,,,,
-csgo_pl_24015,,,,,,,,,
-csgo_pl_25035,,,,,,,,,
-csgo_pl_10506,,,,,,,,,
-csgo_pl_10508,,,,,,,,,
-csgo_pl_20531,,,,,,,,,
-csgo_pl_24558,,,,,,,,,
 csgo_pl_22646,,,,,,,,,
 csgo_pl_22683,,,,,,,,,
 csgo_pl_25781,,,,,,,,,
 csgo_pl_25782,,,,,,,,,
 csgo_pl_25783,,,,,,,,,
-csgo_pl_14244,,,,,,,,,
 csgo_pl_20685,,,,,,,,,
 csgo_pl_24287,,,,,,,,,
 csgo_pl_24594,,,,,,,,,
@@ -912,30 +413,15 @@ csgo_pl_22129,,,,,,,,,
 csgo_pl_20945,,,,,,,,,
 csgo_pl_20686,,,,,,,,,
 csgo_pl_20071,,,,,,,,,
-csgo_pl_21509,,,,,,,,,
-csgo_pl_16768,,,,,,,,,
-csgo_pl_16778,,,,,,,,,
-csgo_pl_19735,,,,,,,,,
-csgo_pl_22000,,,,,,,,,
 csgo_pl_23458,,,,,,,,,
 csgo_pl_21820,,,,,,,,,
 csgo_pl_21705,,,,,,,,,
 csgo_pl_23199,,,,,,,,,
 csgo_pl_21492,,,,,,,,,
-csgo_pl_23544,,,,,,,,,
-csgo_pl_21272,400,800,1000,,Razer Deathadder V3 Pro White,,2,6,1.1
-csgo_pl_24111,,,,,,,,,
-csgo_pl_25576,,,,,,,,,
-csgo_pl_19065,,,,,,,,,
-csgo_pl_12875,,,,,,,,,
-csgo_pl_19730,,,,,,,,,
-csgo_pl_20351,,,,,,,,,
 csgo_pl_25143,,,,,,,,,
 csgo_pl_20582,,,,,,,,,
-csgo_pl_21426,,,,,,,,,
 csgo_pl_24467,,,,,,,,,
 csgo_pl_24664,,,,,,,,,
-csgo_pl_16865,,,,,,,,,
 csgo_pl_20202,,,,,,,,,
 csgo_pl_21393,,,,,,,,,
 csgo_pl_23638,,,,,,,,,
@@ -946,20 +432,11 @@ csgo_pl_21648,,,,,,,,,
 csgo_pl_24516,,,,,,,,,
 csgo_pl_25901,,,,,,,,,
 csgo_pl_25902,,,,,,,,,
-csgo_pl_12733,400,880,500,0,ZOWIE EC2-B Divina Blue,1,2.20,6,1.00
 csgo_pl_16788,,,,,,,,,
 csgo_pl_16790,,,,,,,,,
 csgo_pl_20449,,,,,,,,,
 csgo_pl_25166,,,,,,,,,
-csgo_pl_17656,,,,,,,,,
-csgo_pl_18218,,,,,,,,,
-csgo_pl_20128,,,,,,,,,
-csgo_pl_21990,,,,,,,,,
-csgo_pl_12777,,,,,,,,,
-csgo_pl_19761,400,800,1000,,Razer Viper V2 Pro White,,2,6,1
-csgo_pl_21114,,,,,,,,,
 csgo_pl_22195,,,,,,,,,
-csgo_pl_22199,,,,,,,,,
 csgo_pl_23599,,,,,,,,,
 csgo_pl_22538,,,,,,,,,
 csgo_pl_23386,,,,,,,,,
@@ -981,23 +458,16 @@ csgo_pl_24527,,,,,,,,,
 csgo_pl_25369,,,,,,,,,
 csgo_pl_23828,,,,,,,,,
 csgo_pl_24477,,,,,,,,,
-csgo_pl_24571,,,,,,,,,
-csgo_pl_24572,,,,,,,,,
 csgo_pl_24573,,,,,,,,,
 csgo_pl_24838,,,,,,,,,
 csgo_pl_24195,,,,,,,,,
 csgo_pl_20208,,,,,,,,,
-csgo_pl_21290,,,,,,,,,
 csgo_pl_22082,,,,,,,,,
-csgo_pl_24641,,,,,,,,,
 csgo_pl_25912,,,,,,,,,
 csgo_pl_25919,,,,,,,,,
 csgo_pl_25920,,,,,,,,,
 csgo_pl_25921,,,,,,,,,
 csgo_pl_25922,,,,,,,,,
-csgo_pl_13466,,,,,Logitech G Pro X Superlight White,,,,
-csgo_pl_16410,,,,,,,,,
-csgo_pl_12317,,,,,,,,,
 csgo_pl_19059,800,600,1000,0,FinalMouse Starlight Pro,1,0.75,6,0.8
 csgo_pl_24841,,,,,,,,,
 csgo_pl_25076,,,,,,,,,
@@ -1009,13 +479,9 @@ csgo_pl_24245,,,,,,,,,
 csgo_pl_24809,,,,,,,,,
 csgo_pl_24835,,,,,,,,,
 csgo_pl_25129,,,,,,,,,
-csgo_pl_3329,,,,,,,,,
 csgo_pl_22512,,,,,,,,,
 csgo_pl_17936,,,,,,,,,
 csgo_pl_23741,,,,,,,,,
-csgo_pl_10722,,,,,,,,,
-csgo_pl_22441,,,,,,,,,
-csgo_pl_20354,,,,,,,,,
 csgo_pl_25247,,,,,,,,,
 csgo_pl_25319,,,,,,,,,
 csgo_pl_24449,,,,,,,,,
@@ -1028,50 +494,24 @@ csgo_pl_25471,,,,,,,,,
 csgo_pl_24331,,,,,,,,,
 csgo_pl_25470,,,,,,,,,
 csgo_pl_23265,,,,,,,,,
-csgo_pl_18788,,,,,,,,,
-csgo_pl_19786,800,1040,4000,,Razer Deathadder V3 Pro White,,1.3,7,1
-csgo_pl_19812,,,,,,,,,
-csgo_pl_20782,,,,,,,,,
-csgo_pl_19167,,,,,,,,,
 csgo_pl_25321,,,,,,,,,
 csgo_pl_25322,,,,,,,,,
 csgo_pl_25323,,,,,,,,,
 csgo_pl_25324,,,,,,,,,
 csgo_pl_25325,,,,,,,,,
-csgo_pl_20273,,,,,,,,,
-csgo_pl_20787,,,,,,,,,
-csgo_pl_23410,,,,,,,,,
 csgo_pl_24873,,,,,,,,,
-csgo_pl_23902,,,,,,,,,
 csgo_pl_18993,,,,,,,,,
 csgo_pl_23270,,,,,,,,,
 csgo_pl_25651,,,,,,,,,
 csgo_pl_25652,,,,,,,,,
 csgo_pl_25653,,,,,,,,,
-csgo_pl_22559,,,,,,,,,
 csgo_pl_24715,,,,,,,,,
-csgo_pl_24563,,,,,,,,,
-csgo_pl_24560,,,,,,,,,
 csgo_pl_6536,,,,,,,,,
-csgo_pl_21888,,,,,,,,,
-csgo_pl_22085,,,,,,,,,
-csgo_pl_23960,,,,,,,,,
-csgo_pl_24930,,,,,,,,,
-csgo_pl_25246,,,,,,,,,
-csgo_pl_22997,,,,,,,,,
-csgo_pl_24036,,,,,,,,,
-csgo_pl_24387,,,,,,,,,
-csgo_pl_25905,,,,,,,,,
 csgo_pl_9221,,,,,,,,,
 csgo_pl_18549,,,,,,,,,
-csgo_pl_21169,,,,,,,,,
 csgo_pl_23150,,,,,,,,,
 csgo_pl_23780,,,,,,,,,
-csgo_pl_22566,,,,,,,,,
 csgo_pl_23961,,,,,,,,,
-csgo_pl_24089,,,,,,,,,
-csgo_pl_24223,,,,,,,,,
-csgo_pl_24564,,,,,,,,,
 csgo_pl_21253,,,,,,,,,
 csgo_pl_24842,,,,,,,,,
 csgo_pl_24843,,,,,,,,,
@@ -1079,9 +519,7 @@ csgo_pl_22498,,,,,,,,,
 csgo_pl_22504,,,,,,,,,
 csgo_pl_20234,,,,,,,,,
 csgo_pl_23223,,,,,,,,,
-csgo_pl_24192,,,,,,,,,
 csgo_pl_24669,,,,,,,,,
-csgo_pl_24763,,,,,,,,,
 csgo_pl_25031,,,,,,,,,
 csgo_pl_25032,,,,,,,,,
 csgo_pl_25969,,,,,,,,,
@@ -1090,12 +528,7 @@ csgo_pl_19831,,,,,,,,,
 csgo_pl_22109,,,,,,,,,
 csgo_pl_22404,,,,,,,,,
 csgo_pl_26071,,,,,,,,,
-csgo_pl_24261,,,,,,,,,
-csgo_pl_23765,400,560.00,1000,,,,1.4,6,1
 csgo_pl_21142,,,,,,,,,
-csgo_pl_19594,,,,,,,,,
-csgo_pl_22280,,,,,,,,,
-csgo_pl_14969,,,,,,,,,
 csgo_pl_19566,,,,,,,,,
 csgo_pl_23720,,,,,,,,,
 csgo_pl_24210,,,,,,,,,
@@ -1104,8 +537,6 @@ csgo_pl_23359,,,,,,,,,
 csgo_pl_24821,,,,,,,,,
 csgo_pl_24909,,,,,,,,,
 csgo_pl_24923,,,,,,,,,
-csgo_pl_16661,,,,,,,,,
-csgo_pl_20219,400,920,1000,0,ZOWIE EC2-A White,1,2.30,6,1.00
 csgo_pl_23393,,,,,,,,,
 csgo_pl_23552,,,,,,,,,
 csgo_pl_9681,,,,,,,,,
@@ -1114,10 +545,7 @@ csgo_pl_24033,,,,,,,,,
 csgo_pl_20334,,,,,,,,,
 csgo_pl_21041,,,,,,,,,
 csgo_pl_21200,,,,,,,,,
-csgo_pl_18989,,,,,,,,,
 csgo_pl_19211,,,,,,,,,
-csgo_pl_22638,,,,,,,,,
-csgo_pl_23361,,,,,,,,,
 csgo_pl_26026,,,,,,,,,
 csgo_pl_16180,,,,,,,,,
 csgo_pl_21536,,,,,,,,,
@@ -1127,24 +555,16 @@ csgo_pl_16167,,,,,,,,,
 csgo_pl_25068,,,,,,,,,
 csgo_pl_24077,,,,,,,,,
 csgo_pl_21716,,,,,,,,,
-csgo_pl_16548,,,,,,,,,
 csgo_pl_24951,,,,,,,,,
 csgo_pl_23628,,,,,,,,,
 csgo_pl_23688,,,,,,,,,
-csgo_pl_24092,,,,,,,,,
-csgo_pl_25119,,,,,,,,,
-csgo_pl_25955,,,,,,,,,
-csgo_pl_25956,,,,,,,,,
 csgo_pl_21964,,,,,,,,,
 csgo_pl_21962,,,,,,,,,
 csgo_pl_24996,,,,,,,,,
 csgo_pl_17561,,,,,,,,,
 csgo_pl_23277,,,,,,,,,
 csgo_pl_25147,,,,,,,,,
-csgo_pl_23588,,,,,,,,,
 csgo_pl_23094,,,,,,,,,
-csgo_pl_10840,400,880,1000,0,Logitech G Pro X Superlight Magenta,1,2.2,6,1
-csgo_pl_10838,,,,,,,,,
 csgo_pl_23672,,,,,,,,,
 csgo_pl_24686,,,,,,,,,
 csgo_pl_25874,,,,,,,,,
@@ -1155,10 +575,8 @@ csgo_pl_25427,,,,,,,,,
 csgo_pl_25428,,,,,,,,,
 csgo_pl_25429,,,,,,,,,
 csgo_pl_8503,800,1200,1000,0,SteelSeries Prime Wireless,1,1.50,6,1.00
-csgo_pl_15007,800,800,1000,0,Logitech G Pro X Superlight Black,1,1.00,6,1.00
 csgo_pl_22022,,,,,,,,,
 csgo_pl_20510,,,,,,,,,
-csgo_pl_15090,,,,,,,,,
 csgo_pl_22476,,,,,,,,,
 csgo_pl_9446,,,,,,,,,
 csgo_pl_21695,,,,,,,,,
@@ -1174,11 +592,6 @@ csgo_pl_23453,,,,,,,,,
 csgo_pl_25190,,,,,,,,,
 csgo_pl_25192,,,,,,,,,
 csgo_pl_25923,,,,,,,,,
-csgo_pl_15732,,,,,,,,,
-csgo_pl_22806,,,,,,,,,
-csgo_pl_25109,,,,,,,,,
-csgo_pl_25500,,,,,,,,,
-csgo_pl_25540,,,,,,,,,
 csgo_pl_23234,,,,,,,,,
 csgo_pl_23786,,,,,,,,,
 csgo_pl_24566,,,,,,,,,
@@ -1191,21 +604,17 @@ csgo_pl_25966,,,,,,,,,
 csgo_pl_26123,,,,,,,,,
 csgo_pl_23721,,,,,,,,,
 csgo_pl_18580,,,,,,,,,
-csgo_pl_13914,,,,,,,,,
 csgo_pl_25161,,,,,,,,,
 csgo_pl_25121,,,,,,,,,
 csgo_pl_21655,,,,,,,,,
-csgo_pl_11555,,,,,,,,,
 csgo_pl_20411,,,,,,,,,
 csgo_pl_22877,,,,,,,,,
 csgo_pl_23734,,,,,,,,,
 csgo_pl_24112,,,,,,,,,
 csgo_pl_25483,,,,,,,,,
-csgo_pl_15062,,,,,,,,,
 csgo_pl_24123,,,,,,,,,
 csgo_pl_24125,,,,,,,,,
 csgo_pl_24394,,,,,,,,,
-cg_pl_manual_675,,,,,,,,,
 csgo_pl_26010,,,,,,,,,
 csgo_pl_26011,,,,,,,,,
 csgo_pl_26012,,,,,,,,,
@@ -1223,25 +632,19 @@ csgo_pl_24081,,,,,,,,,
 csgo_pl_24543,,,,,,,,,
 csgo_pl_24544,,,,,,,,,
 csgo_pl_24546,,,,,,,,,
-csgo_pl_24681,,,,,,,,,
 csgo_pl_25580,,,,,,,,,
-csgo_pl_17437,,,,,,,,,
-csgo_pl_19301,,,,,,,,,
 csgo_pl_18399,,,,,,,,,
 csgo_pl_23200,,,,,,,,,
 csgo_pl_24208,,,,,,,,,
 csgo_pl_20006,,,,,,,,,
-csgo_pl_15562,,,,,,,,,
 csgo_pl_25677,,,,,,,,,
 csgo_pl_25678,,,,,,,,,
 csgo_pl_25679,,,,,,,,,
 csgo_pl_25680,,,,,,,,,
-csgo_pl_16349,,,,,,,,,
 csgo_pl_22728,,,,,,,,,
 csgo_pl_24507,,,,,,,,,
 csgo_pl_18641,,,,,,,,,
 csgo_pl_22111,,,,,,,,,
-csgo_pl_14401,,,,,,,,,
 csgo_pl_23621,,,,,,,,,
 csgo_pl_23391,,,,,,,,,
 csgo_pl_25815,,,,,,,,,
@@ -1249,11 +652,6 @@ csgo_pl_25816,,,,,,,,,
 csgo_pl_25817,,,,,,,,,
 csgo_pl_25818,,,,,,,,,
 csgo_pl_25819,,,,,,,,,
-csgo_pl_21219,,,,,,,,,
-csgo_pl_17288,,,,,,,,,
-csgo_pl_11872,,,,,,,,,
-csgo_pl_16340,,,,,,,,,
-csgo_pl_22839,,,,,,,,,
 csgo_pl_24919,,,,,,,,,
 csgo_pl_25943,,,,,,,,,
 csgo_pl_25944,,,,,,,,,
@@ -1264,20 +662,11 @@ csgo_pl_24321,,,,,,,,,
 csgo_pl_25594,,,,,,,,,
 csgo_pl_25595,,,,,,,,,
 csgo_pl_24657,,,,,,,,,
-csgo_pl_15525,,,,,,,,,
-csgo_pl_16581,,,,,,,,,
 csgo_pl_22302,,,,,,,,,
 csgo_pl_24415,,,,,,,,,
-csgo_pl_10728,,,,,,,,,
-csgo_pl_14240,,,,,,,,,
-csgo_pl_14241,,,,,,,,,
 csgo_pl_17318,,,,,,,,,
-csgo_pl_1646,,,,,,,,,
-csgo_pl_16497,,,,,,,,,
-csgo_pl_18775,,,,,,,,,
 csgo_pl_21756,,,,,,,,,
 csgo_pl_22062,,,,,,,,,
-csgo_pl_20773,,,,,,,,,
 csgo_pl_24523,,,,,,,,,
 csgo_pl_20716,,,,,,,,,
 csgo_pl_24520,,,,,,,,,
@@ -1291,10 +680,6 @@ csgo_pl_25979,,,,,,,,,
 csgo_pl_25980,,,,,,,,,
 csgo_pl_25981,,,,,,,,,
 csgo_pl_9214,,,,,,,,,
-csgo_pl_19918,,,,,,,,,
-csgo_pl_20405,,,,,,,,,
-csgo_pl_22547,,,,,,,,,
-csgo_pl_24345,,,,,,,,,
 csgo_pl_24903,,,,,,,,,
 csgo_pl_25396,,,,,,,,,
 csgo_pl_26179,,,,,,,,,
@@ -1321,7 +706,6 @@ csgo_pl_23890,,,,,,,,,
 csgo_pl_24403,,,,,,,,,
 csgo_pl_25941,,,,,,,,,
 csgo_pl_17325,,,,,,,,,
-csgo_pl_22140,,,,,,,,,
 csgo_pl_25485,,,,,,,,,
 csgo_pl_25486,,,,,,,,,
 csgo_pl_23159,,,,,,,,,
@@ -1331,8 +715,6 @@ csgo_pl_23162,,,,,,,,,
 csgo_pl_23163,,,,,,,,,
 csgo_pl_22556,,,,,,,,,
 csgo_pl_24931,,,,,,,,,
-csgo_pl_25464,,,,,,,,,
-csgo_pl_25465,,,,,,,,,
 csgo_pl_25466,,,,,,,,,
 csgo_pl_16341,,,,,,,,,
 csgo_pl_23463,,,,,,,,,
@@ -1361,7 +743,6 @@ csgo_pl_23948,,,,,,,,,
 csgo_pl_23950,,,,,,,,,
 csgo_pl_17644,,,,,,,,,
 csgo_pl_23502,,,,,,,,,
-csgo_pl_22143,,,,,,,,,
 csgo_pl_19996,,,,,,,,,
 csgo_pl_22063,,,,,,,,,
 csgo_pl_23995,,,,,,,,,
@@ -1378,3 +759,841 @@ csgo_pl_20501,,,,,,,,,
 csgo_pl_21733,,,,,,,,,
 csgo_pl_21802,,,,,,,,,
 csgo_pl_22232,,,,,,,,,
+csgo_pl_24266,,,,,,,,,
+csgo_pl_26218,,,,,,,,,
+csgo_pl_26220,,,,,,,,,
+csgo_pl_26219,,,,,,,,,
+csgo_pl_24146,,,,,,,,,
+csgo_pl_9261,800,800,1000,0,Logitech G Pro Wireless,1,1.00,6,0.59
+csgo_pl_24262,,,,,,,,,
+csgo_pl_21972,400,600,1000,0,Razer Deathadder V3 Pro White,1,1.5,6,0.818933027098955175
+csgo_pl_24091,,,,,,,,,
+csgo_pl_23088,,,,,,,,,
+csgo_pl_24528,,,,,,,,,
+csgo_pl_23690,,,,,,,,,
+csgo_pl_20330,,,,,,,,,
+csgo_pl_24234,,,,,,,,,
+csgo_pl_24571,,,,,,,,,
+csgo_pl_23551,,,,,,,,,
+csgo_pl_9483,,,,,,,,,
+csgo_pl_9278,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.2,6,0.8
+csgo_pl_22279,,,,,,,,,
+csgo_pl_23766,400,800.00,1000,,DAREU AE6 Pro Black,,2,6,1
+csgo_pl_2553,400,824,1000,0,ZOWIE FK2-C,1,2.06,6,0.92
+csgo_pl_22559,,,,,,,,,
+csgo_pl_24560,,,,,,,,,
+csgo_pl_24563,,,,,,,,,
+csgo_pl_22927,,,,,,,,,
+csgo_pl_22040,,,,,,,,,
+csgo_pl_20534,,,,,,,,,
+csgo_pl_23302,,,,,,,,,
+csgo_pl_3459,800,1000,1000,0,Logitech G Pro Wireless,1,1.25,6,1.00
+csgo_pl_20870,800,520,1000,0,Logitech G Pro X Superlight Black,1,0.65,6,1
+csgo_pl_9911,400,800,1000,0,ZOWIE FK1+-B,1,2.00,6,1.2
+csgo_pl_22759,,,,,,,,,
+csgo_pl_9960,400,640,4000,0,Razer DeathAdder V3 Pro Faker Edition,1,1.6,6,0.8
+csgo_pl_18053,400,760,1000,0,Logitech G Pro X Superlight Red,1,1.9,6,1
+csgo_pl_22383,,,,,,,,,
+csgo_pl_10895,,,,,,,,,
+csgo_pl_17478,,,,,,,,,
+csgo_pl_24568,,,,,,,,,
+csgo_pl_22878,,,,,,,,,
+csgo_pl_25262,,,,,,,,,
+csgo_pl_2476,400,708,1000,0,ZOWIE EC2-B Divina Blue,1,1.77,6,0.94
+csgo_pl_22380,,,,,,,,,
+csgo_pl_24518,,,,,,,,,
+csgo_pl_23696,,,,,,,,,
+csgo_pl_9108,,,,,,,,,
+csgo_pl_18790,400,600,1000,0,Logitech G Pro X Superlight Black,1,1.5,6,1.04
+csgo_pl_25009,,,,,,,,,
+csgo_pl_22000,,,,,,,,,
+csgo_pl_18545,,,,,,,,,
+csgo_pl_10588,800,831.2,500,0,Logitech G Pro X Superlight White,1,0.95,6,1
+csgo_pl_11139,400,760,1000,0,Logitech G Pro X Superlight Magenta,1,1.90,6,1.00
+csgo_pl_9115,1600,1040,4000,0,Razer DeathAdder V3,1,0.65,6,6
+csgo_pl_20527,,,,,,,,,
+csgo_pl_12872,,,,,,,,,
+csgo_pl_23346,,,,,,,,,
+csgo_pl_18736,,,,,,,,,
+csgo_pl_22629,,,,,,,,,
+csgo_pl_24558,,,,,,,,,
+csgo_pl_20531,,,,,,,,,
+csgo_pl_21302,,,,,,,,,
+csgo_pl_5351,,,,,,,,,
+csgo_pl_21783,,,,,,,,,
+csgo_pl_3329,,,,,,,,,
+csgo_pl_22419,3200,4800.00,2000,,Logitech G Pro X Superlight 2 Black,,1.5,6,0.95
+csgo_pl_17675,,,,,,,,,
+csgo_pl_18120,400,1300,1000,0,Logitech G Pro X Superlight White,1,3.25,6,1.2
+csgo_pl_24036,,,,,,,,,
+csgo_pl_25905,,,,,,,,,
+csgo_pl_22997,,,,,,,,,
+csgo_pl_24021,,,,,,,,,
+csgo_pl_25010,,,,,,,,,
+csgo_pl_25011,,,,,,,,,
+csgo_pl_23304,,,,,,,,,
+csgo_pl_24387,,,,,,,,,
+csgo_pl_25246,,,,,,,,,
+csgo_pl_18163,,,,,,,,,
+csgo_pl_19815,,,,,,,,,
+csgo_pl_21709,,,,,,,,,
+csgo_pl_24457,400,720.00,1000,,Razer Viper V3 Pro White,,1.8,6,1
+csgo_pl_23762,,,,,,,,,
+csgo_pl_23770,,,,,,,,,
+csgo_pl_23477,,,,,,,,,
+csgo_pl_22880,,,,,,,,,
+cg_pl_manual_675,,,,,,,,,
+csgo_pl_10096,400,1000,1000,0,Logitech G Pro X Superlight Red,1,2.5,6,1
+csgo_pl_10330,400,1108,1000,0,Logitech G Pro X Superlight Black,1,2.77,6,1.00
+csgo_pl_10394,400,680,1000,0,Logitech G Pro X Superlight White,1,1.7,6,1.00
+csgo_pl_10508,,,,,,,,,
+csgo_pl_10728,,,,,,,,,
+csgo_pl_11013,,,,,,,,,
+csgo_pl_11140,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.20,6,1.00
+csgo_pl_11199,500,450,1000,0,Xtrfy M4,1,0.90,6,1.10
+csgo_pl_11217,,,,,,,,,
+csgo_pl_11276,,,,,,,,,
+csgo_pl_11555,,,,,,,,,
+csgo_pl_11617,400,800,1000,0,ZOWIE FK1+-B,1,2.00,6,1.00
+csgo_pl_11840,400,580,1000,0,ZOWIE EC1,1,1.45,6,0.856
+csgo_pl_11847,,,,,,,,,
+csgo_pl_12004,400,880,1000,,ZOWIE EC2-B,1,2.20,,1.00
+csgo_pl_12018,800,880,1000,0,Xtrfy M4 Wireless,1,1.10,6,0.9
+csgo_pl_12092,800,800,1000,0,Logitech G403 HERO,1,1,6,1
+csgo_pl_12102,,,,,,,,,
+csgo_pl_12157,,,,,,,,,
+csgo_pl_12317,,,,,,,,,
+csgo_pl_12612,,,,,,,,,
+csgo_pl_12708,400,520,1000,0,ZOWIE ZA12-C,1,1.3,6,1.8
+csgo_pl_12733,400,880,500,0,ZOWIE EC2-B Divina Blue,1,2.20,6,1.00
+csgo_pl_12810,400,468,1000,0,VAXEE OUTSET AX,1,1.17,6,0.80
+csgo_pl_13077,400,560,1000,0,Logitech G Pro X Superlight Black,1,1.4,6,1
+csgo_pl_13138,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
+csgo_pl_13170,400,1236.00,1000,,Logitech G Pro X Superlight Black,,3.09,6,1.3
+csgo_pl_13239,400,880,1000,0,VAXEE XE Wireless Black,1,2.20,6,1.00
+csgo_pl_13249,800,680,1000,0,Razer Viper Mini Signature Edition,1,0.85,6,1
+csgo_pl_13466,,,,,Logitech G Pro X Superlight White,,,,
+csgo_pl_13497,1600,1120,1000,0,SteelSeries Rival 300,1,0.70,6,0.90
+csgo_pl_13578,800,576,1000,0,Logitech G Pro X Superlight Red,1,0.72,6,1.00
+csgo_pl_13718,800,760,1000,0,Razer DeathAdder V2,1,0.95,6,1
+csgo_pl_13749,400,880,1000,0,ZOWIE EC2 RED V2,1,2.2,6,1
+csgo_pl_15062,,,,,,,,,
+csgo_pl_15090,,,,,,,,,
+csgo_pl_11747,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.20,6,1.00
+csgo_pl_18743,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.2,6,1.1
+csgo_pl_12194,,,,,,,,,
+csgo_pl_12953,,,,,,,,,
+csgo_pl_19707,,,,,,,,,
+csgo_pl_18554,,,,,,,,,
+csgo_pl_15525,,,,,,,,,
+csgo_pl_20301,400,664,2000,,Logitech G Pro X Superlight 2 Black,,1.66,6,1
+csgo_pl_20451,,,,,,,,,
+csgo_pl_16581,,,,,,,,,
+csgo_pl_17133,,,,,,,,,
+csgo_pl_17997,,,,,,,,,
+csgo_pl_20522,,,,,,,,,
+csgo_pl_19086,,,,,,,,,
+csgo_pl_14010,,,,,,,,,
+csgo_pl_19512,800,440,1000,0,Razer Deathadder V3 Pro White,1,0.55,6,1.00
+csgo_pl_19671,400,460,1000,0,ZOWIE EC2-C,1,1.15,6,1
+csgo_pl_20521,,,,,,,,,
+csgo_pl_19672,400,800,1000,0,Finalmouse Starlight-12 Phantom,1,2.00,6,1.00
+csgo_pl_17132,,,,,,,,,
+csgo_pl_21109,,,,,,,,,
+csgo_pl_20423,800,840,1000,0,ZOWIE EC3-C,1,1.05,6,1
+csgo_pl_20112,400,680,1000,0,Logitech G Pro X Superlight Black,1,1.7,6,1
+csgo_pl_23643,,,,,,,,,
+csgo_pl_25619,,,,,,,,,
+csgo_pl_3741,400,520,1000,0,Razer Deathadder V3 Pro,1,1.30,6,1.00
+csgo_pl_8520,400,640,1000,0,VAXEE XE Orange,1,1.60,6,0.80
+csgo_pl_7938,400,800,1000,1.05,ZOWIE FK1-C,1,2,6,1.1
+csgo_pl_16920,800,832,1000,0,Logitech G Pro X Superlight White,1,1.04,6,1
+csgo_pl_19230,400,800,1000,0,Logitech G Pro X Superlight Red,1,2,6,1
+csgo_pl_22842,,,,,,,,,
+csgo_pl_23771,,,,,,,,,
+csgo_pl_21062,800,720,1000,0,Logitech G Pro X Superlight,1,0.9,6,1
+csgo_pl_18317,400,534.8,1000,0,ZOWIE S1-C,1,1.337,6,1.20
+csgo_pl_19164,400,760,1000,0,Logitech G Pro X Superlight White,1,1.90,6,0.90
+csgo_pl_19808,400,604,2000,,Logitech G Pro X Superlight 2 Magenta,,1.51,6,1
+csgo_pl_20700,1600,1440,1000,0,Logitech G Pro X Superlight Magenta,1,0.9,6,1
+csgo_pl_22326,,,,,,,,,
+csgo_pl_23600,,,,,,,,,
+csgo_pl_16820,400,1040,1000,0,ZOWIE EC2 White,1,2.60,6,1
+csgo_pl_24177,800,1024.00,1000,,Logitech G Pro X Superlight 2 Magenta,,1.28,6,1
+csgo_pl_21167,800,1000,2000,0,LOGITECH G PRO X SUPERLIGHT 2 MAGENTA,6,1.25,1.25,1
+csgo_pl_14176,400,540,4000,0,VAXEE XE Wireless Pink,1,1.35,6,1
+csgo_pl_19045,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1.00
+csgo_pl_21657,,,,,,,,,
+csgo_pl_21763,400,840,1000,0,Razer Viper Ultimate,1,2.1,6,1
+csgo_pl_15385,,,,,,,,,
+csgo_pl_19739,400,800,1000,0,Logitech G Pro X Superlight White,1,2.00,6,1.00
+csgo_pl_16612,800,1240,1000,0,Logitech G Pro X Superlight Magenta,1,1.55,6,1.00
+csgo_pl_22075,,,,,,,,,
+csgo_pl_21331,,,,,,,,,
+csgo_pl_13776,3200,800,4000,0,Razer Deathadder V3 Pro White,1,0.25,6,1.00
+csgo_pl_13914,,,,,,,,,
+csgo_pl_14175,500,1050,1000,0,Logitech G Pro X Superlight Black,1,2.1,6,1.10
+csgo_pl_14218,800,1200,500,0,Razer Deathadder V3 Pro Black,1,1.50,6,1.20
+csgo_pl_14240,,,,,,,,,
+csgo_pl_14241,,,,,,,,,
+csgo_pl_14244,,,,,,,,,
+csgo_pl_14294,,,,,,,,,
+csgo_pl_14401,,,,,,,,,
+csgo_pl_14619,,,,,,,,,
+csgo_pl_14736,400,520,1000,0,Logitech G Pro X Superlight Black,1,1.3,6,1
+csgo_pl_14737,400,1000,1000,0,Logitech G Pro X Superlight Red,1,2.50,6,1.00
+csgo_pl_14929,400,840,1000,0,Logitech G Pro X Superlight Red,1,2.10,6,1.00
+csgo_pl_14932,400,840,1000,0,Logitech G Pro X Superlight White,1,2.10,7,1.00
+csgo_pl_14969,,,,,,,,,
+csgo_pl_14990,,,,,,,,,
+csgo_pl_15007,800,800,1000,0,Logitech G Pro X Superlight Black,1,1.00,6,1.00
+csgo_pl_15060,,,,,,,,,
+csgo_pl_15118,,,,,,,,,
+csgo_pl_15165,400,604,1000,0,Logitech G Pro X Superlight Red,1,1.51,6,1.2
+csgo_pl_15176,,,,,,,,,
+csgo_pl_15437,,,,,,,,,
+csgo_pl_15562,,,,,,,,,
+csgo_pl_15662,800,920,1000,0,Pulsar Xlite V2 Wireless,1,1.15,6,1.00
+csgo_pl_15818,,,,,,,,,
+csgo_pl_15861,,,,,,,,,
+csgo_pl_15914,800,1280,1000,0,Logitech G Pro X Superlight Black,1,1.6,6,1.00
+csgo_pl_16147,400,560,1000,0,Glorious Model O Wireless,1,1.4,5,1
+csgo_pl_16349,,,,,,,,,
+csgo_pl_16410,,,,,,,,,
+csgo_pl_16415,400,880,1000,0,Logitech G Pro X Superlight Magenta,1,2.20,6,1.00
+csgo_pl_16486,400,700,1000,0,ZOWIE EC2-B,1,1.75,6,1.10
+csgo_pl_16487,400,720,1000,0,VAXEE OUTSET AX Funspark,1,1.8,6,1
+csgo_pl_16551,400,1168,1000,0,ZOWIE FK2-C,1,2.92,6,0.8
+csgo_pl_16558,,,,,,,,,
+csgo_pl_16564,,,,,,,,,
+csgo_pl_24270,,,,,,,,,
+csgo_pl_23768,,,,,,,,,
+csgo_pl_21706,,,,,,,,,
+csgo_pl_23684,,,,,,,,,
+csgo_pl_20128,,,,,,,,,
+csgo_pl_19874,,,,,,,,,
+csgo_pl_24173,,,,,,,,,
+csgo_pl_22076,,,,,,,,,
+csgo_pl_23858,,,,,,,,,
+csgo_pl_18749,800,880,1000,0,VAXEE ZYGEN NP-01,1,1.2,6,1
+csgo_pl_9254,400,400,1000,0,ZOWIE FK1+,1,1,6,1.00
+csgo_pl_8371,400,680,1000,0,Razer Deathadder V3 Pro Black,1,1.7,6,1.00
+csgo_pl_19509,400,880,1000,0,Logitech G Pro X Superlight Black,1,2.20,6,1.00
+csgo_pl_21239,400,1236,1000,0,Logitech G Pro X Superlight Black,1,3.09,6,1
+csgo_pl_20504,,,,,,,,,
+csgo_pl_20956,,,,,,,,,
+csgo_pl_22189,,,,,,,,,
+csgo_pl_22459,,,,,,,,,
+csgo_pl_21233,,,,,,,,,
+csgo_pl_20252,400,740,1000,,ZOWIE EC2-CW,,1.85,6,1
+csgo_pl_22333,,,,,,,,,
+csgo_pl_23457,,,,,,,,,
+csgo_pl_11141,400,952,1000,0,ZOWIE EC3-C,1,2.38,6,1.00
+csgo_pl_21828,,,,,,,,,
+csgo_pl_22415,,,,,,,,,
+csgo_pl_15569,800,904.00,1000,,VAXEE ZYGEN NP-01S,,1.13,6,1
+csgo_pl_12945,,,,,,,,,
+csgo_pl_13670,400,1236,1000,0,Logitech G Pro X Superlight Red,1,3.09,6,1.00
+csgo_pl_16029,400,580,1000,0,Razer Deathadder V3 Pro Black,1,1.45,6,1.30
+csgo_pl_19171,,,,,,,,,
+csgo_pl_25206,,,,,,,,,
+csgo_pl_21155,,,,,,,,,
+csgo_pl_20992,,,,,,,,,
+csgo_pl_17372,400,700,1000,0,Razer Deathadder V3 Pro White,1,1.75,6,1.00
+csgo_pl_21452,400,1200,1000,0,Logitech G Pro X Superlight Magenta,1,3,6,1
+csgo_pl_22965,,,,,,,,,
+csgo_pl_20434,,,,,,,,,
+csgo_pl_24806,,,,,,,,,
+csgo_pl_21243,800,1200,1000,0,Lamzu Atlantis,1,1.5,6,1
+csgo_pl_21708,800,1240,1000,0,Logitech G Pro X Superlight Red,1,1.55,6,0.9
+csgo_pl_18221,900,990,4000,0,Razer Deathadder V3 Pro Black,1,1.1,6,1.00
+csgo_pl_21108,,,,,,,,,
+csgo_pl_11630,400,1100,1000,0,Razer Deathadder V3 Pro White,1,2.75,6,1.00
+csgo_pl_21620,1000,1400,1000,,Logitech G300S,,1.4,6,1
+csgo_pl_19686,400,708,1000,,Logitech G Pro X Superlight Black,,1.77,6,1
+csgo_pl_12521,800,1440,1000,0,Logitech G Pro X Superlight Red,1,1.80,6,1
+csgo_pl_12553,400,1000,1000,0,ZOWIE EC1-C,1,2.50,6,1
+csgo_pl_20114,,,,,,,,,
+csgo_pl_2023,400,556,1000,0,Fallen Pantera Pro Wireless Preto,1,1.39,6,1.2
+csgo_pl_20447,400,1240,1000,,Logitech G Pro X Superlight Magenta,,3.1,6,1
+csgo_pl_20968,800,1040,1000,0,Logitech G Pro X Superlight Black,1,1.3,6,1
+csgo_pl_9436,400,760,1000,0,ZOWIE EC2-CW,1,1.9,6,1
+csgo_pl_13915,800,960,1000,0,ZOWIE EC2-CW,1,1.2,6,1.00
+csgo_pl_21385,,,,,,,,,
+csgo_pl_18072,800,800,1000,0,VAXEE OUTSET AX,1,1.00,6,1.00
+csgo_pl_21969,800,1088.00,1000,,Logitech G Pro X Superlight Black,,1.36,6,0.82
+csgo_pl_150,400,720,1000,0,VAXEE XE Wireless White,1,1.8,6,1
+csgo_pl_19869,400,1163.6,1000,0,Logitech G Pro X Superlight Magenta,1,2.909,6,1.20
+csgo_pl_15631,800,1069.6,1000,0,VAXEE XE Wireless Orange,1,1.337,5,1
+csgo_pl_15698,800,808,1000,0,Logitech G Pro X Superlight White,1,1.01,6,1.00
+csgo_pl_18119,,,,,,,,,
+csgo_pl_15778,400,940,4000,0,Logitech G Pro X Superlight White,1,2.35,5,1
+csgo_pl_24144,400,800.00,1000,,Logitech G Pro X Superlight 2 White,,2,6,1
+csgo_pl_20312,400,880,1000,0,ZOWIE EC1-C,1,2.20,6,1.00
+csgo_pl_8574,1620,2430,1000,0,SteelSeries Sensei Ten,1,1.5,6,1.00
+csgo_pl_22039,400,888,1000,,Logitech G Pro X Superlight 2 Black,,2.22,6,1
+csgo_pl_21284,,,,,,,,,
+csgo_pl_21007,,,,,,,,,
+csgo_pl_10994,400,1040,1000,0,ZOWIE EC2-CW,1,2.60,6,1
+csgo_pl_11955,,,,,,,,,
+csgo_pl_13729,,,,,,,,,
+csgo_pl_13858,,,,,,,,,
+csgo_pl_13917,,,,,,,,,
+csgo_pl_14359,,,,,,,,,
+csgo_pl_15362,,,,,,,,,
+csgo_pl_15762,,,,,,,,,
+csgo_pl_16392,,,,,,,,,
+csgo_pl_21290,,,,,,,,,
+csgo_pl_20621,,,,,,,,,
+csgo_pl_20258,,,,,,,,,
+csgo_pl_18989,,,,,,,,,
+csgo_pl_20198,,,,,,,,,
+csgo_pl_20807,,,,,,,,,
+csgo_pl_23596,,,,,,,,,
+csgo_pl_22638,,,,,,,,,
+csgo_pl_23595,,,,,,,,,
+csgo_pl_23361,,,,,,,,,
+csgo_pl_22267,,,,,,,,,
+csgo_pl_22456,,,,,,,,,
+csgo_pl_25854,,,,,,,,,
+csgo_pl_24747,,,,,,,,,
+csgo_pl_10840,400,880,1000,0,Logitech G Pro X Superlight Magenta,1,2.2,6,1
+csgo_pl_10827,400,800,1000,0,ZOWIE EC2,1,2.00,6,1.00
+csgo_pl_23588,,,,,,,,,
+csgo_pl_10838,,,,,,,,,
+csgo_pl_21170,,,,,,,,,
+csgo_pl_22911,800,880,1000,0,Razer Deathadder V3 Pro Black,1,1.1,6,1
+csgo_pl_21221,,,,,,,,,
+csgo_pl_21921,,,,,,,,,
+csgo_pl_23397,800,604.00,4000,,,,0.755,6,1
+csgo_pl_20558,,,,,,,,,
+csgo_pl_21014,,,,,,,,,
+csgo_pl_22695,800,880,1000,,,,1.2,6,1
+csgo_pl_8183,400,660,1000,0,Logitech G Pro X Superlight Red,1,1.65,6,0.8
+csgo_pl_7592,400,760,1000,0,Logitech G Pro X Superlight Magenta,1,1.90,6,1.00
+csgo_pl_21192,,,,,,,,,
+csgo_pl_21365,,,,,,,,,
+csgo_pl_25608,,,,,,,,,
+csgo_pl_25609,,,,,,,,,
+csgo_pl_13669,400,840,1000,0,Logitech G Pro X Superlight White,1,2.10,6,1.00
+csgo_pl_25925,,,,,,,,,
+csgo_pl_25924,,,,,,,,,
+csgo_pl_25928,,,,,,,,,
+csgo_pl_25927,,,,,,,,,
+csgo_pl_25926,,,,,,,,,
+csgo_pl_19750,400,688,1000,0,Logitech G Pro X Superlight Red,1,1.72,6,1.00
+csgo_pl_20026,1600,2192,1000,,ZOWIE EC1-CW,,1.37,6,1
+csgo_pl_25349,,,,,,,,,
+csgo_pl_22676,,,,,,,,,
+csgo_pl_20097,400,820,1000,0,VAXEE ZYGEN NP-01,1,2.05,6,1.00
+csgo_pl_25777,,,,,,,,,
+csgo_pl_18865,400,1224,1000,0,ZOWIE EC2-C,1,3.06,6,1
+csgo_pl_20085,400,1000,1000,,Logitech G Pro X Superlight Black,,2.5,6,1
+csgo_pl_20948,,,,,,,,,
+csgo_pl_25388,,,,,,,,,
+csgo_pl_19823,,,,,,,,,
+csgo_pl_4829,800,904,1000,0,Logitech G703,1,1.13,6,1
+csgo_pl_9656,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
+csgo_pl_21348,800,1236,1000,0,Logitech G Pro X Superlight Black,1,1.545,6,1
+csgo_pl_21692,,,,,,,,,
+csgo_pl_23642,,,,,,,,,
+csgo_pl_20813,800,800,1000,,Logitech G Pro X Superlight Black,,1,6,1
+csgo_pl_11777,800,1600,1000,0,ZOWIE EC2-C,1,2,4,1.17
+csgo_pl_20889,,,,,,,,,
+csgo_pl_16080,400,744,1000,0,ZOWIE EC2 Tyloo,1,1.86,6,1.00
+csgo_pl_24114,,,,,,,,,
+csgo_pl_13666,800,1040,1000,0,ZOWIE EC2-CW,1,1.3,6,1
+csgo_pl_19677,400,960,1000,0,Logitech G Pro X Superlight White,1,2.4,6,1.00
+csgo_pl_15117,400,640,4000,0,ZOWIE EC2-CW,1,1.6,6,1.00
+csgo_pl_18850,400,600,1000,0,Razer Deathadder V3 Pro Black,1,1.5,6,1
+csgo_pl_22047,800,888.00,1000,,Logitech G Pro X Superlight 2 Black,,1.11,6,1.04
+csgo_pl_14273,800,1080,1000,0,Logitech G Pro X Superlight White,1,1.35,6,1.00
+csgo_pl_23673,,,,,,,,,
+csgo_pl_26261,,,,,,,,,
+csgo_pl_17539,,,,,,,,,
+csgo_pl_11532,,,,,,,,,
+csgo_pl_19448,,,,,,,,,
+csgo_pl_25552,,,,,,,,,
+csgo_pl_24298,,,,,,,,,
+csgo_pl_18361,400,560,1000,0,ZOWIE EC2 RED V2,1,1.4,6,1
+csgo_pl_885,400,700,1000,0,Logitech G Pro X Superlight Black,1,1.75,6,1.2
+csgo_pl_21967,,,,,,,,,
+csgo_pl_25913,,,,,,,,,
+csgo_pl_21115,,,,,,,,,
+csgo_pl_23556,,,,,,,,,
+csgo_pl_25331,,,,,,,,,
+csgo_pl_25676,,,,,,,,,
+csgo_pl_21285,,,,,,,,,
+csgo_pl_25553,,,,,,,,,
+cg_pl_20251112165738yaovo,,,,,,,,,
+cg_pl_20251112165748gtome,,,,,,,,,
+cg_pl_20260420102102pkuu6,,,,,,,,,
+cg_pl_20260420102103dfnx0,,,,,,,,,
+cg_pl_20260420102103fpxvg,,,,,,,,,
+cg_pl_20260420102103vbfm4,,,,,,,,,
+cg_pl_20260420102104tmvp7,,,,,,,,,
+cg_pl_202604201021058h96d,,,,,,,,,
+cg_pl_202604201021058s0ql,,,,,,,,,
+cg_pl_20260420102105jaar1,,,,,,,,,
+cg_pl_20260420102105oydyg,,,,,,,,,
+cg_pl_20260420102105puewm,,,,,,,,,
+cg_pl_manual_650,,,,,,,,,
+cg_pl_manual_651,,,,,,,,,
+cg_pl_manual_653,,,,,,,,,
+cg_pl_manual_654,,,,,,,,,
+csgo_pl_10453,,,,,,,,,
+csgo_pl_10502,,,,,,,,,
+csgo_pl_10504,,,,,,,,,
+csgo_pl_11890,,,,,,,,,
+csgo_pl_11922,,,,,,,,,
+csgo_pl_12027,800,880,1000,0,VAXEE XE Wireless White,1,1.10,6,1.00
+csgo_pl_12416,,,,,,,,,
+csgo_pl_12588,,,,,,,,,
+csgo_pl_20217,,,,,,,,,
+csgo_pl_12937,400,740,1000,0,ZOWIE FK1-B Divina Pink,1,1.85,6,1.00
+csgo_pl_12956,400,760,1000,0,Logitech G Pro X Superlight Black,1,1.9,6,1
+csgo_pl_13054,,,,,,,,,
+csgo_pl_13176,,,,,,,,,
+csgo_pl_13230,400,800,1000,0,VAXEE XE Yellow,1,2.00,6,1.00
+csgo_pl_13250,,,,,,,,,
+csgo_pl_993,,,,,,,,,
+csgo_pl_13949,,,,,,,,,
+csgo_pl_14290,,,,,,,,,
+csgo_pl_14316,,,,,,,,,
+csgo_pl_14390,800,960,1000,0,Logitech G Pro X Superlight Black,1,1.2,6,1
+csgo_pl_14954,,,,,,,,,
+csgo_pl_14956,,,,,,,,,
+csgo_pl_15501,400,600,1000,,Razer Viper V2 Pro Black,,1.5,6,1
+csgo_pl_16031,,,,,,,,,
+csgo_pl_16645,,,,,,,,,
+csgo_pl_16647,,,,,,,,,
+csgo_pl_17071,,,,,,,,,
+csgo_pl_17116,,,,,,,,,
+csgo_pl_17181,800,1360,4000,,Razer Deathadder V3 Pro Black,,1.7,6,1
+csgo_pl_17390,,,,,,,,,
+csgo_pl_17392,,,,,,,,,
+csgo_pl_17622,,,,,,,,,
+csgo_pl_17769,,,,,,,,,
+csgo_pl_24727,,,,,,,,,
+csgo_pl_24743,,,,,,,,,
+csgo_pl_20066,,,,,,,,,
+csgo_pl_20578,,,,,,,,,
+csgo_pl_20215,,,,,,,,,
+csgo_pl_17872,,,,,,,,,
+csgo_pl_18090,,,,,,,,,
+csgo_pl_18140,,,,,,,,,
+csgo_pl_18195,,,,,,,,,
+csgo_pl_20474,,,,,,,,,
+csgo_pl_18738,,,,,,,,,
+csgo_pl_18761,,,,,,,,,
+csgo_pl_19079,,,,,,,,,
+csgo_pl_19128,,,,,,,,,
+csgo_pl_19536,,,,,,,,,
+csgo_pl_19709,400,680.00,1000,,Razer Viper V3 Pro Black,,1.7,6,1
+csgo_pl_19732,,,,,,,,,
+csgo_pl_20002,,,,,,,,,
+csgo_pl_20011,,,,,,,,,
+csgo_pl_24294,,,,,,,,,
+csgo_pl_21891,,,,,,,,,
+csgo_pl_300,,,,,,,,,
+csgo_pl_22460,,,,,,,,,
+csgo_pl_24474,,,,,,,,,
+csgo_pl_23300,,,,,,,,,
+csgo_pl_22863,,,,,,,,,
+csgo_pl_25577,,,,,,,,,
+csgo_pl_25505,,,,,,,,,
+csgo_pl_10730,,,,,,,,,
+csgo_pl_24070,,,,,,,,,
+csgo_pl_20375,,,,,,,,,
+csgo_pl_20677,,,,,,,,,
+csgo_pl_21165,,,,,,,,,
+csgo_pl_20345,400,760,2000,,Pulsar Xlite V3 Es,,1.9,6,1
+csgo_pl_21963,,,,,,,,,
+csgo_pl_22211,,,,,,,,,
+csgo_pl_24726,,,,,,,,,
+csgo_pl_22450,,,,,,,,,
+csgo_pl_25424,,,,,,,,,
+csgo_pl_22193,,,,,,,,,
+csgo_pl_20708,,,,,,,,,
+csgo_pl_26075,,,,,,,,,
+csgo_pl_24840,,,,,,,,,
+csgo_pl_23773,,,,,,,,,
+csgo_pl_26074,,,,,,,,,
+csgo_pl_24692,,,,,,,,,
+csgo_pl_26258,,,,,,,,,
+csgo_pl_23719,,,,,,,,,
+csgo_pl_23370,,,,,,,,,
+csgo_pl_21093,,,,,,,,,
+csgo_pl_21367,,,,,,,,,
+csgo_pl_21175,,,,,,,,,
+csgo_pl_21431,400,1148,500,0,Logitech G Pro X Superlight Black,1,2.869,6,1
+csgo_pl_21398,,,,,,,,,
+csgo_pl_20934,,,,,,,,,
+csgo_pl_19705,,,,,,,,,
+csgo_pl_25087,,,,,,,,,
+csgo_pl_25326,,,,,,,,,
+csgo_pl_24045,,,,,,,,,
+csgo_pl_22655,,,,,,,,,
+csgo_pl_24545,,,,,,,,,
+csgo_pl_20273,,,,,,,,,
+csgo_pl_10722,,,,,,,,,
+csgo_pl_21213,,,,,,,,,
+csgo_pl_21163,800,440,1000,,ZOWIE EC2-CW,,0.55,6,1
+csgo_pl_21428,,,,,,,,,
+csgo_pl_21445,,,,,,,,,
+csgo_pl_21099,,,,,,,,,
+csgo_pl_20245,400,920.00,1000,,,,2.3,6,1
+csgo_pl_20773,,,,,,,,,
+csgo_pl_12793,,,,,,,,,
+csgo_pl_20895,400,848,1000,0,ZOWIE S2,1,2.12,6,1
+csgo_pl_12877,,,,,,,,,
+csgo_pl_20787,,,,,,,,,
+csgo_pl_13287,,,,,,,,,
+csgo_pl_13298,,,,,,,,,
+csgo_pl_20405,,,,,,,,,
+csgo_pl_21272,400,800,1000,,Razer Deathadder V3 Pro White,,2,6,1.1
+csgo_pl_21368,,,,,,,,,
+csgo_pl_14333,,,,,,,,,
+csgo_pl_14494,400,1240,1000,0,Razer Deathadder V3 Pro White,1,3.1,6,1.00
+csgo_pl_14744,,,,,,,,,
+csgo_pl_14799,,,,,,,,,
+csgo_pl_15072,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2,6,1
+csgo_pl_20354,,,,,,,,,
+csgo_pl_15203,,,,,,,,,
+csgo_pl_20268,,,,,,,,,
+csgo_pl_20429,,,,,,,,,
+csgo_pl_20689,,,,,,,,,
+csgo_pl_20573,,,,,,,,,
+csgo_pl_20782,,,,,,,,,
+csgo_pl_20703,,,,,,,,,
+csgo_pl_16768,,,,,,,,,
+csgo_pl_16778,,,,,,,,,
+csgo_pl_16847,400,1080,1000,0,Razer Deathadder V3 Pro Black,1,2.7,6,1
+csgo_pl_16865,,,,,,,,,
+csgo_pl_20883,,,,,,,,,
+csgo_pl_16971,,,,,,,,,
+csgo_pl_21780,,,,,,,,,
+csgo_pl_22066,,,,,,,,,
+csgo_pl_21722,,,,,,,,,
+csgo_pl_21669,,,,,,,,,
+csgo_pl_22038,,,,,,,,,
+csgo_pl_20333,800,1240,1000,0,Logitech G Pro X Superlight Black,1,1.55,6,1
+csgo_pl_21621,400,760,1000,0,ZOWIE EC2-C,1,1.9,6,1
+csgo_pl_22126,,,,,,,,,
+csgo_pl_20958,,,,,,,,,
+csgo_pl_21263,3200,1760,1000,0,ZOWIE EC2-B Divina Pink,1,0.55,6,1
+csgo_pl_21169,,,,,,,,,
+csgo_pl_21983,800,680,1000,0,Logitech G Pro X Superlight Black,1,0.85,6,1.1
+csgo_pl_21700,,,,,,,,,
+csgo_pl_22069,,,,,,,,,
+csgo_pl_21825,,,,,,,,,
+csgo_pl_20421,,,,,,,,,
+csgo_pl_17028,,,,,,,,,
+csgo_pl_17353,,,,,,,,,
+csgo_pl_17378,400,1480,1000,0,ZOWIE FK2,1,3.7,6,1
+csgo_pl_17437,,,,,,,,,
+csgo_pl_21990,,,,,,,,,
+csgo_pl_17656,,,,,,,,,
+csgo_pl_17844,,,,,,,,,
+csgo_pl_17918,400,540,1000,,Logitech G Pro X Superlight 2 White,,1.6,6,1
+csgo_pl_18218,,,,,,,,,
+csgo_pl_21813,,,,,,,,,
+csgo_pl_21426,,,,,,,,,
+csgo_pl_18638,800,1040,500,0,Logitech G Pro X Superlight White,1,1.3,6,1
+csgo_pl_18706,,,,,,,,,
+csgo_pl_18788,,,,,,,,,
+csgo_pl_18838,400,560,1000,0,Razer Deathadder V3 Pro White,1,1.4,6,1
+csgo_pl_19065,,,,,,,,,
+csgo_pl_19167,,,,,,,,,
+csgo_pl_19187,800,1040,1000,0,ZOWIE EC3-CW,1,1.3,6,1.00
+csgo_pl_19229,,,,,,,,,
+csgo_pl_19301,,,,,,,,,
+csgo_pl_19538,,,,,,,,,
+csgo_pl_19602,,,,,,,,,
+csgo_pl_20422,800,1000,1000,0,Logitech G Pro X Superlight Black,1,1.25,6,1
+csgo_pl_19645,400,880,1000,0,ZOWIE EC2-CW,1,2.2,6,1
+csgo_pl_19711,800,1200.00,1000,,Razer Viper V3 Pro White,,1.5,6,1
+csgo_pl_20702,400,800,1000,0,,1,2,6,1
+csgo_pl_19786,800,1040,4000,,Razer Deathadder V3 Pro White,,1.3,7,1
+csgo_pl_19812,,,,,,,,,
+csgo_pl_20204,,,,,,,,,
+csgo_pl_19918,,,,,,,,,
+csgo_pl_19957,400,800,1000,0,Logitech G Pro X Superlight Red,1,2,6,1
+csgo_pl_20158,,,,,,,,,
+csgo_pl_20119,800,720,1000,,Logitech G Pro X Superlight White,,0.9,6,1
+csgo_pl_26073,,,,,,,,,
+csgo_pl_25710,,,,,,,,,
+csgo_pl_22466,,,,,,,,,
+csgo_pl_24105,,,,,,,,,
+csgo_pl_25712,,,,,,,,,
+csgo_pl_22327,,,,,,,,,
+csgo_pl_18553,,,,,,,,,
+csgo_pl_22703,,,,,,,,,
+csgo_pl_24246,,,,,,,,,
+csgo_pl_24111,,,,,,,,,
+csgo_pl_22811,,,,,,,,,
+csgo_pl_24672,,,,,,,,,
+csgo_pl_25576,,,,,,,,,
+csgo_pl_7700,400,840,1000,,Razer Viper V2 Pro Black,,2.1,6,1
+csgo_pl_24924,,,,,,,,,
+csgo_pl_24462,,,,,,,,,
+csgo_pl_9896,400,800,1000,0,ZOWIE EC2,1,2.00,6,1.00
+csgo_pl_22810,,,,,,,,,
+csgo_pl_22385,,,,,,,,,
+csgo_pl_24242,800,720,2000,,Logitech G Pro X Superlight 2 White,,0.9,5,1
+csgo_pl_23544,,,,,,,,,
+csgo_pl_24920,,,,,,,,,
+csgo_pl_23471,,,,,,,,,
+csgo_pl_22945,,,,,,,,,
+csgo_pl_10506,,,,,,,,,
+csgo_pl_11872,,,,,,,,,
+csgo_pl_13240,400,548,1000,0,Logitech G Pro X Superlight Black,1,1.37,6,1.00
+csgo_pl_13281,800,720,500,0,VAXEE NP-01S Yellow,1,0.9,6,1
+csgo_pl_13679,,,,,,,,,
+csgo_pl_13982,800,560,1000,0,Logitech G Pro X Superlight Black,1,0.70,6,1.00
+csgo_pl_14148,400,888,1000,0,Logitech G Pro X Superlight Black,1,2.22,6,1.00
+csgo_pl_14236,,,,,,,,,
+csgo_pl_16948,800,800,1000,0,Logitech G Pro X Superlight Black,1,1,6,1
+csgo_pl_17113,400,1250,1000,1.05,ZOWIE EC2-B Divina Blue,1,3.125,6,1
+csgo_pl_17288,,,,,,,,,
+csgo_pl_18223,,,,,,,,,
+csgo_pl_18240,,,,,,,,,
+csgo_pl_18294,,,,,,,,,
+csgo_pl_18670,400,534.8,1000,0,Logitech G Pro X Superlight Black,1,1.337,6,1
+csgo_pl_18775,,,,,,,,,
+csgo_pl_22140,,,,,,,,,
+csgo_pl_16661,,,,,,,,,
+csgo_pl_23960,,,,,,,,,
+csgo_pl_20219,400,920,1000,0,ZOWIE EC2-A White,1,2.30,6,1.00
+csgo_pl_16340,,,,,,,,,
+csgo_pl_22839,,,,,,,,,
+csgo_pl_21219,,,,,,,,,
+csgo_pl_23461,,,,,,,,,
+csgo_pl_18322,,,,,,,,,
+csgo_pl_12781,400,600,1000,0,VAXEE XE Wireless Black,1,1.5,6,1.10
+csgo_pl_15573,,,,,,,,,
+csgo_pl_1646,,,,,,,,,
+csgo_pl_16497,,,,,,,,,
+csgo_pl_16705,400,560,1000,0,Logitech G Pro X Superlight White,1,1.4,6,1.2
+csgo_pl_17039,,,,,,,,,
+csgo_pl_20197,,,,,,,,,
+csgo_pl_20170,800,920,1000,0,Logitech G Pro X Superlight Black,1,1.15,6,1
+csgo_pl_19735,,,,,,,,,
+csgo_pl_19763,400,760,1000,0,ZOWIE S2,1,1.9,6,1
+csgo_pl_19872,,,,,,,,,
+csgo_pl_20690,,,,,,,,,
+csgo_pl_16835,400,540,1000,,Razer Deathadder V3 Pro Black,,1.35,6,1
+csgo_pl_20885,,,,,,,,,
+csgo_pl_22085,,,,,,,,,
+csgo_pl_24930,,,,,,,,,
+csgo_pl_21888,,,,,,,,,
+csgo_pl_24641,,,,,,,,,
+csgo_pl_12731,800,800,1000,0,Logitech G Pro X Superlight White,1,1,6,1
+csgo_pl_24283,,,,,,,,,
+csgo_pl_20336,,,,,,,,,
+csgo_pl_20340,,,,,,,,,
+csgo_pl_22192,,,,,,,,,
+csgo_pl_20908,,,,,,,,,
+csgo_pl_20339,,,,,,,,,
+csgo_pl_22481,,,,,,,,,
+csgo_pl_19738,800,800,1000,0,Logitech G Pro X Superlight Black,1,1.00,6,0.70
+csgo_pl_21971,,,,,,,,,
+csgo_pl_24970,,,,,,,,,
+csgo_pl_25448,,,,,,,,,
+csgo_pl_22482,,,,,,,,,
+csgo_pl_24905,,,,,,,,,
+csgo_pl_20750,,,,,,,,,
+csgo_pl_23141,,,,,,,,,
+csgo_pl_23480,,,,,,,,,
+csgo_pl_24281,,,,,,,,,
+csgo_pl_25585,,,,,,,,,
+csgo_pl_24690,,,,,,,,,
+csgo_pl_23829,,,,,,,,,
+csgo_pl_25035,,,,,,,,,
+csgo_pl_21038,,,,,,,,,
+csgo_pl_24015,,,,,,,,,
+csgo_pl_24717,,,,,,,,,
+csgo_pl_25465,,,,,,,,,
+csgo_pl_25464,,,,,,,,,
+csgo_pl_24171,,,,,,,,,
+csgo_pl_21369,,,,,,,,,
+csgo_pl_20199,,,,,,,,,
+csgo_pl_24818,,,,,,,,,
+csgo_pl_22777,,,,,,,,,
+csgo_pl_23613,,,,,,,,,
+csgo_pl_23429,,,,,,,,,
+csgo_pl_22182,,,,,,,,,
+csgo_pl_22179,,,,,,,,,
+csgo_pl_23169,,,,,,,,,
+csgo_pl_22547,,,,,,,,,
+csgo_pl_23323,,,,,,,,,
+csgo_pl_22908,,,,,,,,,
+csgo_pl_23410,,,,,,,,,
+csgo_pl_22364,,,,,,,,,
+csgo_pl_22566,,,,,,,,,
+csgo_pl_22967,,,,,,,,,
+csgo_pl_22964,,,,,,,,,
+csgo_pl_25255,1600,756.80,1000,,Logitech G Pro X Superlight 2 Magenta,,0.473,6,1
+csgo_pl_21988,800,640.00,2000,,Razer Viper V3 Pro Black,,0.8,6,1
+csgo_pl_25254,400,572.00,1000,,Lamzu Atlantis OG V2 Pro Polar White,,1.43,6,1
+csgo_pl_23764,,,,,,,,,
+csgo_pl_21513,,,,,,,,,
+csgo_pl_19114,800,640,1000,0,Logitech G Pro Wireless,1,0.8,6,1
+csgo_pl_17504,400,680,1000,0,Logitech G703,1,1.7,6,1
+csgo_pl_20413,400,920,1000,0,Logitech G Pro X Superlight Magenta,1,2.3,6,1
+csgo_pl_25104,,,,,,,,,
+csgo_pl_22199,,,,,,,,,
+csgo_pl_21114,,,,,,,,,
+csgo_pl_19761,400,800,1000,,Razer Viper V2 Pro White,,2,6,1
+csgo_pl_12777,,,,,,,,,
+csgo_pl_22280,,,,,,,,,
+csgo_pl_19594,,,,,,,,,
+csgo_pl_23765,400,560.00,1000,,,,1.4,6,1
+csgo_pl_24261,,,,,,,,,
+csgo_pl_16548,,,,,,,,,
+csgo_pl_22866,,,,,,,,,
+csgo_pl_24810,,,,,,,,,
+csgo_pl_24358,,,,,,,,,
+csgo_pl_19284,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1
+csgo_pl_24325,,,,,,,,,
+csgo_pl_24176,800,1040.00,1000,,Logitech G Pro X Superlight 2 Black,,1.3,6,1
+csgo_pl_17508,400,600,1000,,Zowie FK2-B,,1.5,6,1
+csgo_pl_24569,,,,,,,,,
+csgo_pl_22803,,,,,,,,,
+csgo_pl_20430,400,676,1000,,Logitech G Pro X Superlight Red,,1.69,6,1
+csgo_pl_16753,1000,1140,1000,,Logitech G Pro X Superlight Black,,1.14,6,1
+csgo_pl_24113,,,,,,,,,
+csgo_pl_22948,,,,,,,,,
+csgo_pl_20033,400,840,1000,0,Logitech G Pro X Superlight Black,1,2.1,6,1.2
+csgo_pl_24425,,,,,,,,,
+csgo_pl_23767,,,,,,,,,
+csgo_pl_22474,,,,,,,,,
+csgo_pl_24954,,,,,,,,,
+csgo_pl_23873,,,,,,,,,
+csgo_pl_23683,,,,,,,,,
+csgo_pl_25053,,,,,,,,,
+csgo_pl_24008,,,,,,,,,
+csgo_pl_9144,,,,,,,,,
+csgo_pl_24324,,,,,,,,,
+csgo_pl_25108,,,,,,,,,
+csgo_pl_8622,,,,,,,,,
+csgo_pl_9245,,,,,,,,,
+csgo_pl_9736,,,,,,,,,
+csgo_pl_24089,,,,,,,,,
+csgo_pl_9626,400,800,1000,0,Xtrfy M8 Frosty Purple,1,2,6,1
+csgo_pl_24223,,,,,,,,,
+csgo_pl_25138,,,,,,,,,
+csgo_pl_24564,,,,,,,,,
+csgo_pl_6553,,,,,,,,,
+csgo_pl_24857,800,760,1000,,ZOWIE S1,,0.95,6,1
+csgo_pl_20284,400,400,1000,0,Razer Viper V2 Pro White,1,1,6,1
+csgo_pl_24244,1600,888,4000,,Razer Viper V3 Pro Black,,0.555,6,1
+csgo_pl_24243,400,580,4000,,Razer Viper V3 Pro Black,,1.45,6,1
+csgo_pl_23469,,,,,,,,,
+csgo_pl_15821,400,580,1000,0,Logitech G Pro X Superlight Red,1,1.45,6,1.10
+csgo_pl_22144,,,,,,,,,
+csgo_pl_9818,400,560,1000,,ZOWIE EC2-CW,,1.4,6,0.8
+csgo_pl_22143,,,,,,,,,
+csgo_pl_11205,400,960,1000,0,Logitech G Pro X Superlight Black,1,2.40,5,1.00
+csgo_pl_16102,,,,,,,,,
+csgo_pl_23237,,,,,,,,,
+csgo_pl_20683,,,,,,,,,
+csgo_pl_17003,,,,,,,,,
+csgo_pl_21117,,,,,,,,,
+csgo_pl_21337,,,,,,,,,
+csgo_pl_22650,,,,,,,,,
+csgo_pl_20926,400,880.00,1000,,ZOWIE EC2-CW,,2.2,6,1
+csgo_pl_23614,,,,,,,,,
+csgo_pl_22806,,,,,,,,,
+csgo_pl_25540,,,,,,,,,
+csgo_pl_25500,,,,,,,,,
+csgo_pl_25109,,,,,,,,,
+csgo_pl_15732,,,,,,,,,
+csgo_pl_25955,,,,,,,,,
+csgo_pl_25119,,,,,,,,,
+csgo_pl_24092,,,,,,,,,
+csgo_pl_25956,,,,,,,,,
+csgo_pl_24995,,,,,,,,,
+csgo_pl_695,400,1200,1000,0,Logitech G Pro X Superlight Black,1,3.00,6,1.00
+csgo_pl_9325,,,,,,,,,
+csgo_pl_21931,,,,,,,,,
+csgo_pl_20110,800,800,1000,0,Pwnage Ultra Custom Wireless Ergo,1,1,6,1
+csgo_pl_20228,,,,,,,,,
+csgo_pl_2131,1800,1125,1000,0,Razer Deathadder 2013,0,2.50,3,1.00
+csgo_pl_19614,,,,,,,,,
+csgo_pl_23303,,,,,,,,,
+csgo_pl_22535,,,,,,,,,
+csgo_pl_8311,,,,,,,,,
+csgo_pl_22921,,,,,,,,,
+csgo_pl_16599,400,840,1000,0,Logitech G Pro X Superlight White,1,2.1,6,1.1
+csgo_pl_15370,400,900,1000,0,FinalMouse Starlight-12,1,2.25,6,1
+csgo_pl_21665,,,,,,,,,
+csgo_pl_20104,400,720,1000,0,Logitech G Pro X Superlight Black,1,1.8,6,1
+csgo_pl_23902,,,,,,,,,
+csgo_pl_21100,,,,,,,,,
+csgo_pl_22956,,,,,,,,,
+csgo_pl_20897,400,632,4000,,Razer Deathadder V3 Pro Black,,1.58,6,1
+csgo_pl_22362,,,,,,,,,
+csgo_pl_18891,,,,,,,,,
+csgo_pl_20385,800,708,1000,,Logitech G Pro X Superlight Black,,0.885,6,1
+csgo_pl_11154,800,800,1000,0,VAXEE XE Wireless Orange,1,1.00,6,0.85
+csgo_pl_19692,800,1280,1000,0,Logitech G Pro X Superlight Magenta,1,1.6,6,1.00
+csgo_pl_18717,400,540,1000,0,Logitech G Pro X Superlight Black,1,1.35,6,0.70
+csgo_pl_21286,800,2000.00,2000,,,,2.5,6,1
+csgo_pl_19972,,,,,,,,,
+csgo_pl_14394,400,600,1000,0,ZOWIE EC2,1,1.5,6,1
+csgo_pl_18610,,,,,,,,,
+csgo_pl_16817,400,800,1000,0,Razer Deathadder V3 Pro Black,1,2.00,6,1.00
+csgo_pl_20183,400,720,1000,,VAXEE XE Wireless Orange,,1.8,6,1
+csgo_pl_10566,400,1400,1000,0,VAXEE OUTSET AX Yellow,1,3.5,6,1.00
+csgo_pl_22371,Unknown,Unknown,Unknown,,,,Unknown,Unknown,Unknown
+csgo_pl_12822,1600,768,1000,0,VAXEE XE Wireless Black,1,0.4775,6,1
+csgo_pl_22564,400,560,1000,,ZOWIE EC2-CW,,1.4,6,1
+csgo_pl_24192,,,,,,,,,
+csgo_pl_24238,,,,,,,,,
+csgo_pl_24716,,,,,,,,,
+csgo_pl_2544,,,,,,,,,
+csgo_pl_23587,,,,,,,,,
+csgo_pl_24556,,,,,,,,,
+csgo_pl_24572,,,,,,,,,
+csgo_pl_22423,,,,,,,,,
+csgo_pl_7322,400,640,1000,0,Razer Deathadder V3 Pro White,1,1.6,6,1
+csgo_pl_18462,800,680,1000,0,VAXEE XE Wireless Orange,1,0.85,6,1.00
+csgo_pl_11816,400,708,1000,0,ZOWIE EC2-CW,1,1.77,6,1
+csgo_pl_16693,400,1440,1000,0,VAXEE OUTSET AX Yellow,1,3.60,6,1.10
+csgo_pl_11893,400,800,1000,0,ZOWIE EC2-CW,1,2,6,1
+csgo_pl_9816,800,840,1000,0,Logitech G Pro X Superlight Black,1,1.05,6,0.95
+csgo_pl_22673,,,,,,,,,
+csgo_pl_20127,400,1236,1000,0,Logitech G Pro X Superlight White,1,3.09,6,1
+csgo_pl_18987,400,568,1000,0,Logitech G Pro X Superlight Red,1,1.42,6,1
+csgo_pl_14759,400,940,4000,0,Razer Deathadder V3 Pro,1,2.35,6,1
+csgo_pl_22536,,,,,,,,,
+csgo_pl_11498,800,640,1000,0,Logitech G Pro X Superlight Black,1,0.80,6,0.98
+csgo_pl_22930,,,,,,,,,
+csgo_pl_23047,800,640,1000,,Razer DeathAdder V2,,0.8,6,1
+csgo_pl_20709,400,800,1000,0,Logitech G Pro X Superlight Black,1,2,6,1.3
+csgo_pl_16555,800,1200,1000,0,ZOWIE EC2-C,1,1.50,6,1
+csgo_pl_18510,,,,,,,,,
+csgo_pl_20387,,,,,,,,,
+csgo_pl_16921,400,800,1000,0,VAXEE XE Wireless Blue,1,2.00,6,1
+csgo_pl_22879,,,,,,,,,
+csgo_pl_22883,,,,,,,,,
+csgo_pl_22430,,,,,,,,,
+csgo_pl_22961,,,,,,,,,
+csgo_pl_25423,,,,,,,,,
+csgo_pl_12875,,,,,,,,,
+csgo_pl_19730,,,,,,,,,
+csgo_pl_20351,,,,,,,,,
+csgo_pl_22414,,,,,,,,,
+csgo_pl_22441,,,,,,,,,
+csgo_pl_25703,,,,,,,,,
+csgo_pl_22137,,,,,,,,,
+csgo_pl_24345,,,,,,,,,
+csgo_pl_24681,,,,,,,,,
+csgo_pl_24772,,,,,,,,,
+csgo_pl_24890,,,,,,,,,
+csgo_pl_24763,,,,,,,,,
+csgo_pl_21164,,,,,,,,,
+csgo_pl_21643,,,,,,,,,
+csgo_pl_21509,,,,,,,,,
+csgo_pl_24124,,,,,,,,,

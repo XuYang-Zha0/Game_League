@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import re
@@ -9,10 +9,26 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pymysql
 import requests
-from fastapi import FastAPI, Query
+from fastapi import APIRouter, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+
+def load_local_env() -> None:
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    if not os.path.exists(env_path):
+        return
+    with open(env_path, "r", encoding="utf-8") as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
+load_local_env()
 
 
 DB_CONFIG = {
@@ -20,7 +36,7 @@ DB_CONFIG = {
     "port": int(os.getenv("CS_DB_PORT", "3306")),
     "user": os.getenv("CS_DB_USER", "root"),
     "password": os.getenv("CS_DB_PASSWORD", ""),
-    "database": os.getenv("CS_DB_NAME", "cs_esports"),
+    "database": os.getenv("CS_DB_NAME", "esports"),
     "charset": "utf8mb4",
     "autocommit": True,
     "cursorclass": pymysql.cursors.DictCursor,
@@ -35,11 +51,15 @@ LIVE_SYNC_INTERVAL_SECONDS = max(15, int(os.getenv("CS_LIVE_SYNC_INTERVAL_SECOND
 LIVE_SYNC_SCHEDULE_PAGES = max(1, int(os.getenv("CS_LIVE_SYNC_SCHEDULE_PAGES", "2")))
 LIVE_SYNC_RESULT_PAGES = max(1, int(os.getenv("CS_LIVE_SYNC_RESULT_PAGES", "2")))
 LIVE_SYNC_RECENT_HOURS = max(1, int(os.getenv("CS_LIVE_SYNC_RECENT_HOURS", "12")))
+LIVE_SYNC_START_DATE_TEXT = os.getenv("CS_LIVE_SYNC_START_DATE", "").strip()
+LIVE_SYNC_LOOKBACK_DAYS = max(1, int(os.getenv("CS_LIVE_SYNC_LOOKBACK_DAYS", "10")))
+LIVE_SYNC_FUTURE_DAYS = max(1, int(os.getenv("CS_LIVE_SYNC_FUTURE_DAYS", "14")))
 LIVE_SYNC_TIMEOUT_SECONDS = max(5, int(os.getenv("CS_LIVE_SYNC_TIMEOUT_SECONDS", "25")))
 LIVE_SYNC_MIN_GAP_SECONDS = max(5, int(os.getenv("CS_LIVE_SYNC_MIN_GAP_SECONDS", "8")))
 LIVE_SYNC_PAGE_SIZE = 20
 LIVE_API_MATCH_LIMIT = max(20, int(os.getenv("CS_LIVE_API_MATCH_LIMIT", "240")))
 SCHEDULE_API_MATCH_LIMIT = max(100, int(os.getenv("CS_SCHEDULE_API_MATCH_LIMIT", "3000")))
+SCHEDULE_STALE_LIVE_HOURS = max(1, int(os.getenv("CS_SCHEDULE_STALE_LIVE_HOURS", "8")))
 LIVE_API_LOOKBACK_HOURS = max(1, int(os.getenv("CS_LIVE_API_LOOKBACK_HOURS", "36")))
 LIVE_API_LOOKAHEAD_HOURS = max(2, int(os.getenv("CS_LIVE_API_LOOKAHEAD_HOURS", "72")))
 LIVE_SCHEDULE_URL = "https://app.5eplay.com/api/tournament/session_list"
@@ -69,7 +89,7 @@ LIVE_SYNC_LOCK = threading.Lock()
 LIVE_SYNC_LAST_TRIGGER_TS = 0.0
 
 
-app = FastAPI(title="Game League CS2 API", version="0.1.0")
+app = FastAPI(title="Game League API", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -82,6 +102,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+router = APIRouter()
 
 
 def get_conn() -> pymysql.Connection:
@@ -199,6 +221,155 @@ def metric_percent_to_raw(value: Any) -> float:
     if num > 1:
         num = num / 100.0
     return max(0.0, min(num, 1.0))
+
+
+def metric_number(value: Any) -> Optional[float]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    text = text.replace("%", "").replace("+-", "-")
+    match = re.search(r"-?\d+(?:\.\d+)?", text)
+    if not match:
+        return None
+    try:
+        return float(match.group(0))
+    except (TypeError, ValueError):
+        return None
+
+
+def is_truthy_flag(value: Any) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def clamp_float(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
+
+
+def infer_cs_impact(
+    *,
+    rating: Any = None,
+    kpr: Any = None,
+    dpr: Any = None,
+    kast: Any = None,
+    adr: Any = None,
+) -> Optional[float]:
+    rating_value = metric_number(rating)
+    kpr_value = metric_number(kpr)
+    dpr_value = metric_number(dpr)
+    kast_value = metric_number(kast)
+    adr_value = metric_number(adr)
+
+    if (
+        rating_value is not None
+        and kpr_value is not None
+        and dpr_value is not None
+        and kast_value is not None
+        and adr_value is not None
+    ):
+        impact = (
+            rating_value
+            - (
+                0.0073 * kast_value
+                + 0.3591 * kpr_value
+                - 0.5329 * dpr_value
+                + 0.0032 * adr_value
+                + 0.1587
+            )
+        ) / 0.2372
+        return clamp_float(impact, 0.0, 3.0)
+
+    if kpr_value is not None and adr_value is not None:
+        dpr_penalty = 0.0 if dpr_value is None else 0.35 * (dpr_value - 0.67)
+        impact = (2.13 * kpr_value) + (0.0032 * adr_value) - dpr_penalty - 0.63
+        if impact <= 0 and rating_value is not None:
+            return clamp_float(rating_value, 0.0, 3.0)
+        return clamp_float(impact, 0.0, 3.0)
+
+    if rating_value is not None:
+        return clamp_float(rating_value, 0.0, 3.0)
+
+    return None
+
+
+def metric_row_value(rows_by_metric: Dict[str, Dict[str, Any]], metric: str, field: str) -> Any:
+    return (rows_by_metric.get(metric) or {}).get(field)
+
+
+def midpoint_metric(row: Dict[str, Any], *fields: str) -> Optional[float]:
+    values = [metric_number(row.get(field)) for field in fields]
+    values = [value for value in values if value is not None]
+    if not values:
+        return None
+    return sum(values) / len(values)
+
+
+def normalize_cs_performance_metrics(
+    rows: List[Dict[str, Any]],
+    basic: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    normalized: List[Dict[str, Any]] = []
+    rows_by_metric: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        item = dict(row)
+        metric = str(item.get("metric") or "").strip().lower()
+        if not metric:
+            continue
+        item["metric"] = metric
+        item["lower_better"] = "1" if is_truthy_flag(item.get("lower_better")) else "0"
+        normalized.append(item)
+        rows_by_metric.setdefault(metric, item)
+
+    impact_row = rows_by_metric.get("impact")
+    if not impact_row:
+        impact_row = {
+            "metric": "impact",
+            "value": "",
+            "avg_value": "",
+            "lower_better": "0",
+            "bad_start": "0.96",
+            "bad_end": "0.80",
+            "middle_start": "1.13",
+            "middle_end": "0.97",
+            "good_start": "1.30",
+            "good_end": "1.14",
+        }
+        normalized.append(impact_row)
+        rows_by_metric["impact"] = impact_row
+    else:
+        impact_row["lower_better"] = "0"
+
+    impact_value = metric_number(impact_row.get("value"))
+    if impact_value is None or impact_value <= 0.05:
+        inferred = infer_cs_impact(
+            rating=metric_row_value(rows_by_metric, "rating", "value") or basic.get("rating"),
+            kpr=metric_row_value(rows_by_metric, "kpr", "value") or basic.get("kpr"),
+            dpr=metric_row_value(rows_by_metric, "dpr", "value") or basic.get("dpr"),
+            kast=metric_row_value(rows_by_metric, "kast", "value") or basic.get("kast"),
+            adr=metric_row_value(rows_by_metric, "adr", "value") or basic.get("adr"),
+        )
+        if inferred is not None and inferred > 0:
+            impact_row["value"] = f"{inferred:.2f}"
+
+    impact_avg = metric_number(impact_row.get("avg_value"))
+    if impact_avg is None or impact_avg <= 0.05:
+        inferred_avg = infer_cs_impact(
+            rating=metric_row_value(rows_by_metric, "rating", "avg_value"),
+            kpr=metric_row_value(rows_by_metric, "kpr", "avg_value"),
+            dpr=metric_row_value(rows_by_metric, "dpr", "avg_value"),
+            kast=metric_row_value(rows_by_metric, "kast", "avg_value"),
+            adr=metric_row_value(rows_by_metric, "adr", "avg_value"),
+        )
+        if inferred_avg is None:
+            inferred_avg = midpoint_metric(impact_row, "middle_start", "middle_end")
+        if inferred_avg is not None and inferred_avg > 0:
+            impact_row["avg_value"] = f"{inferred_avg:.2f}"
+
+    if basic and (metric_number(basic.get("impact")) is None or metric_number(basic.get("impact")) <= 0.05):
+        basic_impact = metric_number(impact_row.get("value"))
+        if basic_impact is not None and basic_impact > 0:
+            basic["impact"] = f"{basic_impact:.2f}"
+
+    return normalized
 
 
 def build_live_http_session() -> requests.Session:
@@ -338,9 +509,22 @@ def dedupe_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return list(bucket.values())
 
 
+def resolve_live_sync_start_dt() -> datetime:
+    if LIVE_SYNC_START_DATE_TEXT:
+        parsed = parse_datetime_text(LIVE_SYNC_START_DATE_TEXT)
+        if isinstance(parsed, datetime):
+            return parsed
+    return datetime.now() - timedelta(days=LIVE_SYNC_LOOKBACK_DAYS)
+
+
+def resolve_live_sync_end_dt() -> datetime:
+    return datetime.now() + timedelta(days=LIVE_SYNC_FUTURE_DAYS)
+
+
 def fetch_live_schedule_rows() -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
-    cutoff = datetime.now() - timedelta(hours=LIVE_SYNC_RECENT_HOURS)
+    start_dt = resolve_live_sync_start_dt()
+    end_dt = resolve_live_sync_end_dt()
     for page in range(1, LIVE_SYNC_SCHEDULE_PAGES + 1):
         payload = live_get_json(
             LIVE_SCHEDULE_URL,
@@ -365,14 +549,18 @@ def fetch_live_schedule_rows() -> List[Dict[str, Any]]:
                 continue
             status_code = safe_int(row.get("status"), -1)
             match_time = row.get("match_time")
-            if status_code == 1 or (isinstance(match_time, datetime) and match_time >= cutoff):
+            if status_code == 1:
+                rows.append(row)
+                continue
+            if isinstance(match_time, datetime) and start_dt <= match_time <= end_dt:
                 rows.append(row)
     return dedupe_rows(rows)
 
 
 def fetch_live_result_rows() -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
-    cutoff = datetime.now() - timedelta(hours=LIVE_SYNC_RECENT_HOURS)
+    start_dt = resolve_live_sync_start_dt()
+    now_dt = datetime.now()
     page_token = now_page_token()
     for _ in range(LIVE_SYNC_RESULT_PAGES):
         payload = live_get_json(
@@ -398,9 +586,9 @@ def fetch_live_result_rows() -> List[Dict[str, Any]]:
             if not row:
                 continue
             match_time = row.get("match_time")
-            if isinstance(match_time, datetime) and match_time >= cutoff:
+            if isinstance(match_time, datetime) and start_dt <= match_time <= now_dt:
                 rows.append(row)
-            elif isinstance(match_time, datetime) and match_time < cutoff:
+            elif isinstance(match_time, datetime) and match_time < start_dt:
                 should_stop = True
 
         last_ts = matches[-1].get("mc_info", {}).get("plan_ts")
@@ -569,15 +757,26 @@ def upsert_match_schedule(cur: pymysql.cursors.DictCursor, rows: List[Dict[str, 
         ON DUPLICATE KEY UPDATE
             match_time = VALUES(match_time),
             bo = VALUES(bo),
-            team1_id = VALUES(team1_id),
-            team1 = VALUES(team1),
-            team2_id = VALUES(team2_id),
-            team2 = VALUES(team2),
-            event_id = VALUES(event_id),
-            event_name = VALUES(event_name),
-            score1 = VALUES(score1),
-            score2 = VALUES(score2),
-            status = VALUES(status)
+            team1_id = COALESCE(NULLIF(VALUES(team1_id), ''), match_schedule.team1_id),
+            team1 = CASE
+                WHEN UPPER(TRIM(COALESCE(VALUES(team1), ''))) IN ('', '-', 'TBD', 'UNKNOWN')
+                THEN match_schedule.team1
+                ELSE VALUES(team1)
+            END,
+            team2_id = COALESCE(NULLIF(VALUES(team2_id), ''), match_schedule.team2_id),
+            team2 = CASE
+                WHEN UPPER(TRIM(COALESCE(VALUES(team2), ''))) IN ('', '-', 'TBD', 'UNKNOWN')
+                THEN match_schedule.team2
+                ELSE VALUES(team2)
+            END,
+            event_id = COALESCE(NULLIF(VALUES(event_id), ''), match_schedule.event_id),
+            event_name = COALESCE(NULLIF(VALUES(event_name), ''), match_schedule.event_name),
+            score1 = COALESCE(VALUES(score1), match_schedule.score1),
+            score2 = COALESCE(VALUES(score2), match_schedule.score2),
+            status = CASE
+                WHEN match_schedule.status = 2 AND VALUES(status) = 1 THEN match_schedule.status
+                ELSE COALESCE(VALUES(status), match_schedule.status)
+            END
         """,
         values,
     )
@@ -616,17 +815,28 @@ def upsert_match_result(cur: pymysql.cursors.DictCursor, rows: List[Dict[str, An
         ON DUPLICATE KEY UPDATE
             match_time = VALUES(match_time),
             bo = VALUES(bo),
-            team1_id = VALUES(team1_id),
-            team1 = VALUES(team1),
-            team2_id = VALUES(team2_id),
-            team2 = VALUES(team2),
-            event_id = VALUES(event_id),
-            event_name = VALUES(event_name),
-            score1 = VALUES(score1),
-            score2 = VALUES(score2),
-            status = VALUES(status),
-            bout_count = VALUES(bout_count),
-            bout_details = VALUES(bout_details)
+            team1_id = COALESCE(NULLIF(VALUES(team1_id), ''), match_result.team1_id),
+            team1 = CASE
+                WHEN UPPER(TRIM(COALESCE(VALUES(team1), ''))) IN ('', '-', 'TBD', 'UNKNOWN')
+                THEN match_result.team1
+                ELSE VALUES(team1)
+            END,
+            team2_id = COALESCE(NULLIF(VALUES(team2_id), ''), match_result.team2_id),
+            team2 = CASE
+                WHEN UPPER(TRIM(COALESCE(VALUES(team2), ''))) IN ('', '-', 'TBD', 'UNKNOWN')
+                THEN match_result.team2
+                ELSE VALUES(team2)
+            END,
+            event_id = COALESCE(NULLIF(VALUES(event_id), ''), match_result.event_id),
+            event_name = COALESCE(NULLIF(VALUES(event_name), ''), match_result.event_name),
+            score1 = COALESCE(VALUES(score1), match_result.score1),
+            score2 = COALESCE(VALUES(score2), match_result.score2),
+            status = CASE
+                WHEN match_result.status = 2 AND VALUES(status) = 1 THEN match_result.status
+                ELSE COALESCE(VALUES(status), match_result.status)
+            END,
+            bout_count = COALESCE(VALUES(bout_count), match_result.bout_count),
+            bout_details = COALESCE(NULLIF(VALUES(bout_details), ''), match_result.bout_details)
         """,
         values,
     )
@@ -855,10 +1065,39 @@ def build_players(
         for row in rank_rows
     }
 
-    # Prefer player_basic because it contains portrait + rating/impact.
-    # Fallback to team_player_relation when player_basic is unavailable.
-    use_real_metrics = False
-    try:
+    table_cache: Set[str] = set()
+    base_by_id: Dict[str, Dict[str, Any]] = {}
+
+    def merge_player_row(row: Dict[str, Any], source_priority: int) -> None:
+        player_id = str(row.get("player_id") or "").strip()
+        if not player_id:
+            return
+        row = dict(row)
+        row["player_id"] = player_id
+        row["source_priority"] = source_priority
+        existing = base_by_id.get(player_id)
+        if not existing:
+            base_by_id[player_id] = row
+            return
+        if source_priority < safe_int(existing.get("source_priority"), 99):
+            merged = {**row}
+            for key, value in existing.items():
+                if key not in merged or merged.get(key) in (None, ""):
+                    merged[key] = value
+            base_by_id[player_id] = merged
+            return
+        for key, value in row.items():
+            existing_empty = existing.get(key) in (None, "", 0)
+            if key == "impact":
+                existing_impact = metric_number(existing.get(key))
+                incoming_impact = metric_number(value)
+                existing_empty = existing_empty or existing_impact is None or existing_impact <= 0.05
+                if incoming_impact is None or incoming_impact <= 0.05:
+                    continue
+            if existing_empty and value not in (None, ""):
+                existing[key] = value
+
+    if table_exists(cur, "player_basic", table_cache):
         cur.execute(
             """
             SELECT
@@ -869,6 +1108,10 @@ def build_players(
                 pb.position,
                 pb.rating,
                 pb.impact,
+                pb.adr,
+                pb.kpr,
+                pb.dpr,
+                pb.kast,
                 pb.maps_played,
                 COALESCE(NULLIF(pb.portrait, ''), NULLIF(pb.half_portrait, '')) AS avatar
             FROM player_basic pb
@@ -876,30 +1119,88 @@ def build_players(
             WHERE pb.player_id IS NOT NULL AND pb.player_id <> ''
             """
         )
-        base_rows = list(cur.fetchall())
-        use_real_metrics = True
-    except pymysql.err.ProgrammingError as exc:
-        # 1146: table doesn't exist
-        if not exc.args or int(exc.args[0]) != 1146:
-            raise
+        for row in cur.fetchall():
+            merge_player_row(row, 0)
+
+    if table_exists(cur, "team_player_relation", table_cache):
         cur.execute(
             """
             SELECT
                 tpr.player_id,
-                tpr.player_name,
-                tpr.team_id,
-                COALESCE(tpr.team_name, tb.team_name) AS team_name,
+                MAX(NULLIF(tpr.player_name, '')) AS player_name,
+                MAX(NULLIF(tpr.team_id, '')) AS team_id,
+                COALESCE(MAX(NULLIF(tpr.team_name, '')), MAX(NULLIF(tb.team_name, ''))) AS team_name,
                 NULL AS position,
                 NULL AS rating,
                 NULL AS impact,
-                NULL AS maps_played,
+                NULL AS adr,
+                NULL AS kpr,
+                NULL AS dpr,
+                NULL AS kast,
+                0 AS maps_played,
                 MAX(NULLIF(tpr.player_portrait, '')) AS avatar
             FROM team_player_relation tpr
             LEFT JOIN team_basic tb ON tb.team_id = tpr.team_id
-            GROUP BY tpr.player_id, tpr.player_name, tpr.team_id, COALESCE(tpr.team_name, tb.team_name)
+            WHERE tpr.player_id IS NOT NULL AND tpr.player_id <> ''
+            GROUP BY tpr.player_id
             """
         )
-        base_rows = list(cur.fetchall())
+        for row in cur.fetchall():
+            merge_player_row(row, 1)
+
+    if table_exists(cur, "match_result_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                mrps.player_id,
+                MAX(NULLIF(mrps.player_name, '')) AS player_name,
+                MAX(NULLIF(mrps.team_id, '')) AS team_id,
+                COALESCE(MAX(NULLIF(mrps.team_name, '')), MAX(NULLIF(tb.team_name, ''))) AS team_name,
+                NULL AS position,
+                AVG(NULLIF(mrps.rating, '')) AS rating,
+                AVG(NULLIF(mrps.impact, '')) AS impact,
+                AVG(NULLIF(mrps.adr, '')) AS adr,
+                AVG(NULLIF(mrps.kpr, '')) AS kpr,
+                NULL AS dpr,
+                AVG(NULLIF(mrps.kast, '')) AS kast,
+                COUNT(*) AS maps_played,
+                MAX(NULLIF(mrps.country_logo, '')) AS avatar
+            FROM match_result_player_stats mrps
+            LEFT JOIN team_basic tb ON tb.team_id = mrps.team_id
+            WHERE mrps.player_id IS NOT NULL AND mrps.player_id <> ''
+            GROUP BY mrps.player_id
+            """
+        )
+        for row in cur.fetchall():
+            merge_player_row(row, 2)
+
+    if table_exists(cur, "match_result_map_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                mrmp.player_id,
+                MAX(NULLIF(mrmp.player_name, '')) AS player_name,
+                MAX(NULLIF(mrmp.team_id, '')) AS team_id,
+                COALESCE(MAX(NULLIF(mrmp.team_name, '')), MAX(NULLIF(tb.team_name, ''))) AS team_name,
+                NULL AS position,
+                AVG(NULLIF(mrmp.rating, '')) AS rating,
+                NULL AS impact,
+                AVG(NULLIF(mrmp.adr, '')) AS adr,
+                AVG(NULLIF(mrmp.kpr, '')) AS kpr,
+                NULL AS dpr,
+                AVG(NULLIF(mrmp.kast, '')) AS kast,
+                COUNT(*) AS maps_played,
+                MAX(NULLIF(mrmp.country_logo, '')) AS avatar
+            FROM match_result_map_player_stats mrmp
+            LEFT JOIN team_basic tb ON tb.team_id = mrmp.team_id
+            WHERE mrmp.player_id IS NOT NULL AND mrmp.player_id <> ''
+            GROUP BY mrmp.player_id
+            """
+        )
+        for row in cur.fetchall():
+            merge_player_row(row, 3)
+
+    base_rows = list(base_by_id.values())
 
     def resolve_team_rank(row: Dict[str, Any]) -> int:
         team_id = str(row.get("team_id") or "")
@@ -954,16 +1255,20 @@ def build_players(
         s_weight = sample_weight(maps_played)
         t_weight = team_weight(team_rank)
 
-        if use_real_metrics:
-            rating_value = safe_float(row.get("rating"), 0.0)
-            impact_value = safe_float(row.get("impact"), 0.0)
-            rating_text = f"{rating_value:.2f}" if rating_value > 0 else "-"
-            impact_text = f"{impact_value:.2f}" if impact_value > 0 else "-"
-        else:
-            rating_value = max(0.85, round(1.35 - (idx - 1) * 0.01, 2))
-            impact_value = max(0.75, round(1.20 - (idx - 1) * 0.008, 2))
-            rating_text = f"{rating_value:.2f}"
-            impact_text = f"{impact_value:.2f}"
+        rating_value = safe_float(row.get("rating"), 0.0)
+        impact_value = safe_float(row.get("impact"), 0.0)
+        if impact_value <= 0.05:
+            inferred_impact = infer_cs_impact(
+                rating=row.get("rating"),
+                kpr=row.get("kpr"),
+                dpr=row.get("dpr"),
+                kast=row.get("kast"),
+                adr=row.get("adr"),
+            )
+            if inferred_impact is not None:
+                impact_value = inferred_impact
+        rating_text = f"{rating_value:.2f}" if rating_value > 0 else "-"
+        impact_text = f"{impact_value:.2f}" if impact_value > 0 else "-"
 
         players.append(
             {
@@ -1127,9 +1432,47 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
     return [row_to_tournament(row, now) for row in rows]
 
 def build_match_payload(row: Dict[str, Any]) -> Dict[str, Any]:
+    def derive_from_bout_details(note_text: str) -> Tuple[Optional[int], Optional[int]]:
+        text = str(note_text or "").strip()
+        if not text:
+            return None, None
+        t1_wins = 0
+        t2_wins = 0
+        for part in [x.strip() for x in text.split("|") if str(x or "").strip()]:
+            lower = part.lower()
+            if "winner:t1" in lower or "winner:team1" in lower:
+                t1_wins += 1
+                continue
+            if "winner:t2" in lower or "winner:team2" in lower:
+                t2_wins += 1
+                continue
+            m = re.search(r":\s*(\d+)\s*-\s*(\d+)", part)
+            if not m:
+                continue
+            s1 = safe_int(m.group(1))
+            s2 = safe_int(m.group(2))
+            if s1 > s2:
+                t1_wins += 1
+            elif s2 > s1:
+                t2_wins += 1
+        if t1_wins == 0 and t2_wins == 0:
+            return None, None
+        return t1_wins, t2_wins
+
     s1 = row.get("score1")
     s2 = row.get("score2")
     score_known = s1 is not None and s2 is not None
+    bout_details_text = str(row.get("bout_details") or "").strip()
+    if score_known and safe_int(s1) == 0 and safe_int(s2) == 0 and bout_details_text:
+        d1, d2 = derive_from_bout_details(bout_details_text)
+        if d1 is not None and d2 is not None:
+            s1, s2 = d1, d2
+    elif not score_known and bout_details_text:
+        d1, d2 = derive_from_bout_details(bout_details_text)
+        if d1 is not None and d2 is not None:
+            s1, s2 = d1, d2
+            score_known = True
+
     if score_known:
         score_text = f"{safe_int(s1)}-{safe_int(s2)}"
         if safe_int(s1) > safe_int(s2):
@@ -1166,7 +1509,7 @@ def build_match_payload(row: Dict[str, Any]) -> Dict[str, Any]:
 
 def build_matches(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
     cur.execute(
-        """
+        f"""
         WITH merged AS (
             SELECT
                 mr.match_id,
@@ -1211,13 +1554,22 @@ def build_matches(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
                 dedup.*,
                 CASE
                     WHEN dedup.status = 2 THEN 1
+                    WHEN dedup.status = 1
+                         AND dedup.match_time IS NOT NULL
+                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL {SCHEDULE_STALE_LIVE_HOURS} HOUR) THEN 1
                     WHEN dedup.status = 1 THEN 0
                     WHEN dedup.status = 0
+                         AND dedup.score1 IS NOT NULL
+                         AND dedup.score2 IS NOT NULL
+                         AND (dedup.score1 <> 0 OR dedup.score2 <> 0) THEN 1
+                    WHEN dedup.status = 0
+                         AND NULLIF(TRIM(COALESCE(dedup.bout_details, '')), '') IS NOT NULL THEN 1
+                    WHEN dedup.status = 0
                          AND dedup.match_time IS NOT NULL
-                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1
+                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 12 HOUR) THEN 1
                     WHEN dedup.status = 0 THEN 0
                     WHEN dedup.score1 IS NOT NULL AND dedup.score2 IS NOT NULL AND (dedup.score1 <> 0 OR dedup.score2 <> 0) THEN 1
-                    WHEN dedup.match_time IS NOT NULL AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1
+                    WHEN NULLIF(TRIM(COALESCE(dedup.bout_details, '')), '') IS NOT NULL THEN 1
                     ELSE 0
                 END AS is_finished
             FROM dedup
@@ -1349,11 +1701,13 @@ def build_matches_filtered(
     date_filter: Optional[str] = None,
     tier_filter: str = "b_or_above",
     limit: int = SCHEDULE_API_MATCH_LIMIT,
+    offset: int = 0,
 ) -> List[Dict[str, Any]]:
     normalized_view = normalize_schedule_view(view)
     normalized_date = normalize_schedule_date(date_filter or "")
     min_tier_rank = tier_filter_min_rank(tier_filter)
     safe_limit = max(1, min(int(limit), SCHEDULE_API_MATCH_LIMIT))
+    safe_offset = max(0, int(offset))
 
     where_clauses: List[str] = []
     params: List[Any] = []
@@ -1380,6 +1734,7 @@ def build_matches_filtered(
         order_sql = "q.match_time DESC"
 
     params.append(safe_limit)
+    params.append(safe_offset)
 
     cur.execute(
         f"""
@@ -1430,16 +1785,24 @@ def build_matches_filtered(
                 dedup.*,
                 CASE
                     WHEN dedup.status = 2 THEN 1
+                    WHEN dedup.status = 1
+                         AND dedup.match_time IS NOT NULL
+                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL {SCHEDULE_STALE_LIVE_HOURS} HOUR) THEN 1
                     WHEN dedup.status = 1 THEN 0
                     WHEN dedup.status = 0
+                         AND dedup.score1 IS NOT NULL
+                         AND dedup.score2 IS NOT NULL
+                         AND (dedup.score1 <> 0 OR dedup.score2 <> 0) THEN 1
+                    WHEN dedup.status = 0
+                         AND NULLIF(TRIM(COALESCE(dedup.bout_details, '')), '') IS NOT NULL THEN 1
+                    WHEN dedup.status = 0
                          AND dedup.match_time IS NOT NULL
-                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1
+                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 12 HOUR) THEN 1
                     WHEN dedup.status = 0 THEN 0
                     WHEN dedup.score1 IS NOT NULL
                          AND dedup.score2 IS NOT NULL
                          AND (dedup.score1 <> 0 OR dedup.score2 <> 0) THEN 1
-                    WHEN dedup.match_time IS NOT NULL
-                         AND dedup.match_time <= DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1
+                    WHEN NULLIF(TRIM(COALESCE(dedup.bout_details, '')), '') IS NOT NULL THEN 1
                     ELSE 0
                 END AS is_finished
             FROM dedup
@@ -1538,6 +1901,7 @@ def build_matches_filtered(
         {where_sql}
         ORDER BY {order_sql}
         LIMIT %s
+        OFFSET %s
         """,
         tuple(params),
     )
@@ -2218,6 +2582,24 @@ def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[s
         for idx in sorted(map_player_stats_by_index.keys())
     ]
     enrich_match_player_avatars(cur, table_cache, player_stats, map_player_stats)
+    map_indexes_with_players = {
+        safe_int(block.get("mapIndex"), 0)
+        for block in map_player_stats
+        if len(block.get("teamA") or []) + len(block.get("teamB") or []) > 0
+    }
+    maps = [
+        map_row
+        for map_row in maps
+        if map_row.get("team1Score") is not None
+        or map_row.get("team2Score") is not None
+        or safe_int(map_row.get("index"), 0) in map_indexes_with_players
+    ]
+    visible_map_indexes = {safe_int(map_row.get("index"), 0) for map_row in maps}
+    map_player_stats = [
+        block
+        for block in map_player_stats
+        if safe_int(block.get("mapIndex"), 0) in visible_map_indexes
+    ]
 
     return {
         "matchId": str(row.get("match_id") or match_id),
@@ -2461,6 +2843,69 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
         if row:
             detail["basic"] = json_row(row)
 
+    if not detail["basic"] and table_exists(cur, "match_result_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                player_id AS playerId,
+                MAX(NULLIF(player_name, '')) AS name,
+                MAX(NULLIF(team_id, '')) AS teamId,
+                MAX(NULLIF(team_name, '')) AS teamName,
+                MAX(NULLIF(country_logo, '')) AS countryLogo,
+                AVG(NULLIF(rating, '')) AS rating,
+                AVG(NULLIF(kd, '')) AS kd,
+                AVG(NULLIF(adr, '')) AS adr,
+                AVG(NULLIF(kpr, '')) AS kpr,
+                AVG(NULLIF(kast, '')) AS kast,
+                AVG(NULLIF(impact, '')) AS impact,
+                COUNT(*) AS maps_played
+            FROM match_result_player_stats
+            WHERE player_id = %s
+            GROUP BY player_id
+            LIMIT 1
+            """,
+            (player_id,),
+        )
+        row = cur.fetchone()
+        if row:
+            item = json_row(row)
+            for key in ("rating", "kd", "adr", "kpr", "kast", "impact"):
+                if item.get(key) not in (None, ""):
+                    item[key] = format_metric(item.get(key), 2)
+            item["avatar"] = ""
+            detail["basic"] = item
+
+    if not detail["basic"] and table_exists(cur, "match_result_map_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                player_id AS playerId,
+                MAX(NULLIF(player_name, '')) AS name,
+                MAX(NULLIF(team_id, '')) AS teamId,
+                MAX(NULLIF(team_name, '')) AS teamName,
+                MAX(NULLIF(country_logo, '')) AS countryLogo,
+                AVG(NULLIF(rating, '')) AS rating,
+                AVG(NULLIF(kd_rate, '')) AS kd,
+                AVG(NULLIF(adr, '')) AS adr,
+                AVG(NULLIF(kpr, '')) AS kpr,
+                AVG(NULLIF(kast, '')) AS kast,
+                COUNT(*) AS maps_played
+            FROM match_result_map_player_stats
+            WHERE player_id = %s
+            GROUP BY player_id
+            LIMIT 1
+            """,
+            (player_id,),
+        )
+        row = cur.fetchone()
+        if row:
+            item = json_row(row)
+            for key in ("rating", "kd", "adr", "kpr", "kast"):
+                if item.get(key) not in (None, ""):
+                    item[key] = format_metric(item.get(key), 2)
+            item["avatar"] = ""
+            detail["basic"] = item
+
     if table_exists(cur, "player_stats_summary", table_cache):
         cur.execute(
             "SELECT * FROM player_stats_summary WHERE player_id = %s LIMIT 1",
@@ -2469,6 +2914,36 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
         row = cur.fetchone()
         if row:
             detail["summary"] = json_row(row)
+
+    if not detail["summary"] and table_exists(cur, "match_result_map_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                COUNT(*) AS maps_played,
+                SUM(`kill`) AS kills,
+                SUM(`death`) AS deaths,
+                SUM(`assist`) AS assists,
+                AVG(NULLIF(rating, '')) AS rating,
+                AVG(NULLIF(adr, '')) AS adr,
+                AVG(NULLIF(kd_rate, '')) AS kd
+            FROM match_result_map_player_stats
+            WHERE player_id = %s
+            """,
+            (player_id,),
+        )
+        row = json_row(cur.fetchone() or {})
+        if safe_int(row.get("maps_played")) > 0:
+            detail["summary"] = {
+                "player_id": player_id,
+                "maps_played": safe_int(row.get("maps_played")),
+                "kills": safe_int(row.get("kills")),
+                "deaths": safe_int(row.get("deaths")),
+                "assists": safe_int(row.get("assists")),
+                "rating": format_metric(row.get("rating")),
+                "adr": format_metric(row.get("adr"), 1),
+                "kd": format_metric(row.get("kd")),
+                "source": "match_result_map_player_stats",
+            }
 
     if table_exists(cur, "player_mouse_config", table_cache):
         cur.execute(
@@ -2552,6 +3027,37 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
             kept_by_key[key] = row
         detail["maps"] = list(kept_by_key.values())
 
+    if not detail["maps"] and table_exists(cur, "match_result_map_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                map_name,
+                AVG(NULLIF(kd_rate, '')) AS map_kd,
+                AVG(NULLIF(rating, '')) AS map_rating,
+                COUNT(*) AS use_num
+            FROM match_result_map_player_stats
+            WHERE player_id = %s
+              AND map_name IS NOT NULL
+              AND map_name <> ''
+            GROUP BY map_name
+            ORDER BY use_num DESC, map_name ASC
+            """,
+            (player_id,),
+        )
+        fallback_maps = []
+        kept_by_key: Dict[str, Dict[str, Any]] = {}
+        for row in cur.fetchall():
+            item = json_row(row)
+            key = normalize_map_key(item.get("map_name"))
+            if key not in ACTIVE_POOL_MAP_NAMES or key in kept_by_key:
+                continue
+            item["map_name"] = ACTIVE_POOL_MAP_NAMES[key]
+            item["map_kd"] = format_metric(item.get("map_kd"))
+            item["map_rating"] = format_metric(item.get("map_rating"))
+            kept_by_key[key] = item
+            fallback_maps.append(item)
+        detail["maps"] = fallback_maps
+
     if table_exists(cur, "player_performance_metrics", table_cache):
         cur.execute(
             """
@@ -2564,6 +3070,12 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
             (player_id,),
         )
         detail["performanceMetrics"] = [json_row(row) for row in cur.fetchall()]
+
+    if detail.get("basic") or detail.get("performanceMetrics"):
+        detail["performanceMetrics"] = normalize_cs_performance_metrics(
+            detail.get("performanceMetrics") or [],
+            detail.get("basic") or {},
+        )
 
     if table_exists(cur, "player_rating_chart", table_cache):
         cur.execute(
@@ -2633,6 +3145,63 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
                 else ""
             )
             matches.append(item)
+        detail["recentMatches"] = matches
+
+    if not detail["recentMatches"] and table_exists(cur, "match_result_player_stats", table_cache):
+        cur.execute(
+            """
+            SELECT
+                mr.match_id,
+                mr.match_time,
+                mr.bo,
+                mr.team1_id,
+                mr.team1,
+                mr.team2_id,
+                mr.team2,
+                mr.score1,
+                mr.score2,
+                mr.event_name,
+                mrps.team_id,
+                mrps.team_name,
+                mrps.rating,
+                mrps.adr,
+                mrps.kd
+            FROM match_result_player_stats mrps
+            LEFT JOIN match_result mr ON mr.match_id = mrps.match_id
+            WHERE mrps.player_id = %s
+            ORDER BY mr.match_time DESC, mrps.match_id DESC
+            LIMIT 30
+            """,
+            (player_id,),
+        )
+        matches = []
+        for row in cur.fetchall():
+            item = json_row(row)
+            team_id = str(item.get("team_id") or "").strip()
+            is_left = team_id and team_id == str(item.get("team1_id") or "").strip()
+            if not is_left and team_id != str(item.get("team2_id") or "").strip():
+                is_left = str(item.get("team_name") or "").strip() == str(item.get("team1") or "").strip()
+            own_score = item.get("score1") if is_left else item.get("score2")
+            opp_score = item.get("score2") if is_left else item.get("score1")
+            result = "-"
+            if own_score is not None and opp_score is not None:
+                result = "胜" if safe_int(own_score) > safe_int(opp_score) else ("负" if safe_int(own_score) < safe_int(opp_score) else "平")
+            matches.append(
+                {
+                    "match_id": item.get("match_id"),
+                    "ts_text": item.get("match_time") or "",
+                    "tournament_name": item.get("event_name") or "-",
+                    "tt_stage_desc": f"BO{safe_int(item.get('bo'), 0)}" if item.get("bo") is not None else "-",
+                    "home_team_name": item.get("team_name") or "-",
+                    "opponent_team_name": item.get("team2") if is_left else item.get("team1"),
+                    "home_score": own_score,
+                    "opponent_score": opp_score,
+                    "result": result,
+                    "rating": format_metric(item.get("rating")),
+                    "adr": format_metric(item.get("adr"), 1),
+                    "kd": format_metric(item.get("kd")),
+                }
+            )
         detail["recentMatches"] = matches
 
     # Prefer current roster teammates (same team_id), fallback to cached teammate table.
@@ -3143,7 +3712,7 @@ def build_dataset() -> Dict[str, Any]:
         turning_points = ["No turning points generated from DB yet."]
 
     metrics = [
-        {"label": "鏀跺綍璧涗簨", "value": str(len(tournaments)), "detail": "From cs_esports.event_basic + match tables"},
+        {"label": "鏀跺綍璧涗簨", "value": str(len(tournaments)), "detail": "From esports.event_basic + match tables"},
         {"label": "鏀跺綍姣旇禌", "value": str(len(matches)), "detail": "Merged schedule and results"},
         {"label": "鎴橀槦瑙勬ā", "value": str(len(teams)), "detail": "Latest snapshot by team_id"},
         {"label": "閫夋墜鏍锋湰", "value": str(len(players)), "detail": "Grouped by player_id"},
@@ -3181,7 +3750,7 @@ def build_dataset() -> Dict[str, Any]:
             "playerInsight": "Player list is grouped from team_player_relation and ordered by team rank.",
         },
         "mappingNotes": [
-            {"title": "Data source", "desc": "All homepage blocks are read from cs_esports tables."},
+            {"title": "Data source", "desc": "All homepage blocks are read from esports tables."},
             {"title": "Match merge", "desc": "match_result is preferred over match_schedule for duplicate match_id."},
             {"title": "Fallback values", "desc": "Unavailable columns are filled with '-' for UI stability."},
         ],
@@ -3191,41 +3760,21 @@ def build_dataset() -> Dict[str, Any]:
     }
 
 
-@app.on_event("startup")
-def app_startup() -> None:
-    start_live_sync_worker()
 
 
-@app.on_event("shutdown")
-def app_shutdown() -> None:
-    stop_live_sync_worker()
-
-
-@app.get("/api/health")
-def health() -> Dict[str, Any]:
-    return {
-        "status": "ok",
-        "liveSync": {
-            "enabled": LIVE_SYNC_STATE.get("enabled", False),
-            "startedAt": LIVE_SYNC_STATE.get("startedAt", ""),
-            "lastRunAt": LIVE_SYNC_STATE.get("lastRunAt", ""),
-            "lastError": LIVE_SYNC_STATE.get("lastError", ""),
-        },
-    }
-
-
-@app.get("/api/cs2/dataset")
+@router.get("/api/cs2/dataset")
 def cs2_dataset() -> Dict[str, Any]:
     maybe_trigger_live_sync(force=False)
     return {"success": True, "data": build_dataset()}
 
 
-@app.get("/api/cs2/matches")
+@router.get("/api/cs2/matches")
 def cs2_matches(
     view: str = Query("fixture"),
     date: str = Query(""),
     tier: str = Query("b_or_above"),
     limit: int = Query(SCHEDULE_API_MATCH_LIMIT, ge=1, le=10000),
+    offset: int = Query(0, ge=0, le=1000000),
 ) -> Dict[str, Any]:
     maybe_trigger_live_sync(force=False)
     with get_conn() as conn:
@@ -3236,6 +3785,7 @@ def cs2_matches(
                 date_filter=date,
                 tier_filter=tier,
                 limit=limit,
+                offset=offset,
             )
     return {
         "success": True,
@@ -3247,12 +3797,13 @@ def cs2_matches(
                 "date": normalize_schedule_date(date or "") or "",
                 "tier": normalize_schedule_tier(tier),
                 "limit": max(1, min(int(limit), SCHEDULE_API_MATCH_LIMIT)),
+                "offset": max(0, int(offset)),
             },
         },
     }
 
 
-@app.get("/api/cs2/live")
+@router.get("/api/cs2/live")
 def cs2_live_dataset() -> Dict[str, Any]:
     maybe_trigger_live_sync(force=False)
     with get_conn() as conn:
@@ -3271,7 +3822,7 @@ def cs2_live_dataset() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/cs2/player/{player_id}")
+@router.get("/api/cs2/player/{player_id}")
 def cs2_player_detail(player_id: str) -> Dict[str, Any]:
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -3279,7 +3830,7 @@ def cs2_player_detail(player_id: str) -> Dict[str, Any]:
     return {"success": True, "data": detail}
 
 
-@app.get("/api/cs2/team/{team_key}")
+@router.get("/api/cs2/team/{team_key}")
 def cs2_team_detail(team_key: str) -> Dict[str, Any]:
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -3287,7 +3838,7 @@ def cs2_team_detail(team_key: str) -> Dict[str, Any]:
     return {"success": True, "data": detail}
 
 
-@app.get("/api/cs2/match/{match_id}")
+@router.get("/api/cs2/match/{match_id}")
 def cs2_match_detail(match_id: str) -> Dict[str, Any]:
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -3295,8 +3846,12 @@ def cs2_match_detail(match_id: str) -> Dict[str, Any]:
     return {"success": True, "data": detail}
 
 
+
+
+app.include_router(router)
+
+
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run("cs_api_server:app", host="127.0.0.1", port=8000, reload=True)
-

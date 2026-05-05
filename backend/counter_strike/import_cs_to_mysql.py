@@ -11,12 +11,12 @@ DB_CONFIG = {
     "port": int(os.getenv("CS_DB_PORT", "3306")),
     "user": os.getenv("CS_DB_USER", "root"),
     "password": os.getenv("CS_DB_PASSWORD", ""),
-    "database": os.getenv("CS_DB_NAME", "cs_esports"),
+    "database": os.getenv("CS_DB_NAME", "esports"),
     "charset": "utf8mb4",
     "autocommit": True,
 }
 
-DATABASE_NAME = os.getenv("CS_DB_NAME", "cs_esports")
+DATABASE_NAME = os.getenv("CS_DB_NAME", "esports")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CS_DATA_DIR = Path(BASE_DIR) / "cs_data"
 INVALID_TEAM_ID_TOKENS = {"", "none", "null", "nan", "na", "n/a", "-"}

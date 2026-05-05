@@ -22,6 +22,7 @@ OUTPUT_MAP_FILE = BASE_DIR / "cs_data" / "cs2_result_map_stats_5eplay.csv"
 OUTPUT_MAP_PLAYER_FILE = BASE_DIR / "cs_data" / "cs2_result_map_player_stats_5eplay.csv"
 
 SCHEMA_VERSION = "v2_compact"
+FETCH_ERROR_MAX_LENGTH = 255
 
 DEFAULT_MAX_MATCHES = int(os.getenv("CS_DETAIL_MAX_MATCHES", "0"))
 DEFAULT_MAX_WORKERS = max(1, int(os.getenv("CS_DETAIL_MAX_WORKERS", "64")))
@@ -57,7 +58,7 @@ DB_CONFIG = {
     "port": int(os.getenv("CS_DB_PORT", "3306")),
     "user": os.getenv("CS_DB_USER", "root"),
     "password": os.getenv("CS_DB_PASSWORD", ""),
-    "database": os.getenv("CS_DB_NAME", "cs_esports"),
+    "database": os.getenv("CS_DB_NAME", "esports"),
     "charset": "utf8mb4",
     "autocommit": True,
     "cursorclass": pymysql.cursors.DictCursor,
@@ -229,6 +230,13 @@ def normalize_text(value: Any) -> str:
     return str(value or "").strip()
 
 
+def join_fetch_errors(errors: List[str]) -> str:
+    text = ",".join(error for error in errors if error)
+    if len(text) <= FETCH_ERROR_MAX_LENGTH:
+        return text
+    return text[: FETCH_ERROR_MAX_LENGTH - 3] + "..."
+
+
 def to_int(value: Any) -> Optional[int]:
     if value is None:
         return None
@@ -239,6 +247,28 @@ def to_int(value: Any) -> Optional[int]:
         return int(float(text))
     except (TypeError, ValueError):
         return None
+
+
+def to_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    text = str(value).strip().replace("%", "")
+    if text == "":
+        return None
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def format_number(value: Optional[float], digits: int = 2) -> str:
+    if value is None:
+        return ""
+    return f"{value:.{digits}f}"
+
+
+def clamp(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
 
 
 def normalize_source(value: str) -> str:
@@ -401,6 +431,205 @@ def parse_bout_details(
     return rows
 
 
+def _normalize_winner_side(value: Any) -> str:
+    text = normalize_text(value).lower()
+    if text in {"t1", "team1", "1"}:
+        return "t1"
+    if text in {"t2", "team2", "2"}:
+        return "t2"
+    return ""
+
+
+def extract_team_score_from_bout(bout: Dict[str, Any], side: str) -> Optional[int]:
+    direct_key = f"{side}_score"
+    direct_score = to_int(bout.get(direct_key))
+    if direct_score is not None:
+        return direct_score
+    stats = bout.get(f"{side}_stats")
+    if isinstance(stats, dict):
+        for key in ("all_score", "quick_score"):
+            score = to_int(stats.get(key))
+            if score is not None:
+                return score
+        fh_score = to_int(stats.get("fh_score")) or 0
+        sh_score = to_int(stats.get("sh_score")) or 0
+        ot_score = to_int(stats.get("ot_score")) or 0
+        total = fh_score + sh_score + ot_score
+        if total > 0:
+            return total
+    return None
+
+
+def extract_round_count_from_bout(bout: Dict[str, Any]) -> Optional[int]:
+    team1_score = extract_team_score_from_bout(bout, "t1")
+    team2_score = extract_team_score_from_bout(bout, "t2")
+    if team1_score is not None and team2_score is not None:
+        total = team1_score + team2_score
+        if total > 0:
+            return total
+
+    totals: List[int] = []
+    for side in ("t1", "t2"):
+        stats = bout.get(f"{side}_stats")
+        if not isinstance(stats, dict):
+            continue
+        total = 0
+        for key in ("fh_data", "sh_data", "ot_data"):
+            values = stats.get(key)
+            if isinstance(values, list):
+                total += len(values)
+        if total > 0:
+            totals.append(total)
+    if totals:
+        return max(totals)
+    return None
+
+
+def parse_map_rows_from_data(
+    match_id: str,
+    team1_id: str,
+    team1_name: str,
+    team2_id: str,
+    team2_name: str,
+    data_data: Dict[str, Any],
+    fetched_at: str,
+) -> List[Dict[str, Any]]:
+    match_data = data_data.get("match") if isinstance(data_data, dict) else {}
+    bouts_state = match_data.get("bouts_state") if isinstance(match_data, dict) else []
+    if not isinstance(bouts_state, list):
+        return []
+
+    rows: List[Dict[str, Any]] = []
+    for fallback_idx, bout in enumerate(bouts_state, start=1):
+        if not isinstance(bout, dict):
+            continue
+        t1_players = bout.get("t1_pr_stats")
+        t2_players = bout.get("t2_pr_stats")
+        has_player_stats = (
+            isinstance(t1_players, list)
+            and len(t1_players) > 0
+            or isinstance(t2_players, list)
+            and len(t2_players) > 0
+        )
+        map_index = to_int(bout.get("bout_num")) or fallback_idx
+        map_name = normalize_text(
+            bout.get("map_name")
+            or bout.get("disp_name")
+            or bout.get("display")
+        )
+        team1_score = extract_team_score_from_bout(bout, "t1")
+        team2_score = extract_team_score_from_bout(bout, "t2")
+        if team1_score is None and team2_score is None and not has_player_stats:
+            continue
+
+        winner_side = _normalize_winner_side(bout.get("result"))
+        if not winner_side and team1_score is not None and team2_score is not None:
+            if team1_score > team2_score:
+                winner_side = "t1"
+            elif team2_score > team1_score:
+                winner_side = "t2"
+
+        winner_team_id = ""
+        winner_team_name = ""
+        if winner_side == "t1":
+            winner_team_id = team1_id
+            winner_team_name = team1_name
+        elif winner_side == "t2":
+            winner_team_id = team2_id
+            winner_team_name = team2_name
+
+        rows.append(
+            {
+                "match_id": match_id,
+                "map_index": map_index,
+                "map_name": map_name,
+                "team1_score": team1_score,
+                "team2_score": team2_score,
+                "winner_side": winner_side,
+                "winner_team_id": winner_team_id,
+                "winner_team_name": winner_team_name,
+                "fetched_at": fetched_at,
+            }
+        )
+    return rows
+
+
+def merge_map_rows(
+    preferred_rows: List[Dict[str, Any]],
+    fallback_rows: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    merged: Dict[str, Dict[str, Any]] = {}
+
+    def row_key(row: Dict[str, Any], fallback_idx: int) -> str:
+        map_index = to_int(row.get("map_index")) or fallback_idx
+        map_name = normalize_text(row.get("map_name")).lower()
+        return f"{map_index}:{map_name}"
+
+    for idx, row in enumerate(fallback_rows, start=1):
+        merged[row_key(row, idx)] = dict(row)
+
+    for idx, row in enumerate(preferred_rows, start=1):
+        key = row_key(row, idx)
+        base = merged.get(key, {})
+        out = {**base, **row}
+        # Keep more informative values.
+        for field in ("map_name", "winner_side", "winner_team_id", "winner_team_name"):
+            if normalize_text(base.get(field)) and not normalize_text(out.get(field)):
+                out[field] = base.get(field)
+        for field in ("team1_score", "team2_score"):
+            if out.get(field) is None and base.get(field) is not None:
+                out[field] = base.get(field)
+        merged[key] = out
+
+    rows = list(merged.values())
+    rows.sort(key=lambda x: (to_int(x.get("map_index")) or 9999, normalize_text(x.get("map_name"))))
+    return rows
+
+
+def derive_match_fields_from_maps(
+    map_rows: List[Dict[str, Any]],
+) -> Tuple[Optional[int], Optional[int], int, str]:
+    if not map_rows:
+        return None, None, 0, ""
+
+    wins_t1 = 0
+    wins_t2 = 0
+    bout_parts: List[str] = []
+
+    for row in map_rows:
+        map_name = normalize_text(row.get("map_name")) or "Unknown"
+        s1 = to_int(row.get("team1_score"))
+        s2 = to_int(row.get("team2_score"))
+        winner_side = _normalize_winner_side(row.get("winner_side"))
+
+        if not winner_side and s1 is not None and s2 is not None:
+            if s1 > s2:
+                winner_side = "t1"
+            elif s2 > s1:
+                winner_side = "t2"
+
+        if winner_side == "t1":
+            wins_t1 += 1
+        elif winner_side == "t2":
+            wins_t2 += 1
+
+        if s1 is None and s2 is None and not winner_side:
+            continue
+
+        ds1 = 0 if s1 is None else s1
+        ds2 = 0 if s2 is None else s2
+        part = f"{map_name}:{ds1}-{ds2}"
+        if winner_side:
+            part += f"(winner:{winner_side})"
+        bout_parts.append(part)
+
+    bout_details = " | ".join(bout_parts)
+    bout_count = len(map_rows)
+    if wins_t1 == 0 and wins_t2 == 0:
+        return None, None, bout_count, bout_details
+    return wins_t1, wins_t2, bout_count, bout_details
+
+
 def extract_player_rows(
     match_id: str,
     team1_id: str,
@@ -451,6 +680,110 @@ def extract_player_rows(
     return rows
 
 
+def estimate_kill_rounds(player: Dict[str, Any], rounds: int) -> int:
+    kills = to_int(player.get("kill")) or 0
+    if kills <= 0 or rounds <= 0:
+        return 0
+
+    k2 = to_int(player.get("k2"))
+    k3 = to_int(player.get("k3"))
+    k4 = to_int(player.get("k4"))
+    k5 = to_int(player.get("k5"))
+    if any(value is not None for value in (k2, k3, k4, k5)):
+        k2 = k2 or 0
+        k3 = k3 or 0
+        k4 = k4 or 0
+        k5 = k5 or 0
+        single_kill_rounds = kills - (2 * k2 + 3 * k3 + 4 * k4 + 5 * k5)
+        kill_rounds = single_kill_rounds + k2 + k3 + k4 + k5
+        return max(0, min(rounds, kill_rounds))
+
+    multi_kill_rounds = to_int(player.get("more_kill")) or 0
+    return max(0, min(rounds, kills - multi_kill_rounds))
+
+
+def estimate_kast(player: Dict[str, Any], rounds: Optional[int]) -> str:
+    existing = normalize_text(player.get("kast"))
+    if existing:
+        return existing
+    if not rounds or rounds <= 0:
+        return ""
+
+    kills = to_int(player.get("kill")) or 0
+    deaths = to_int(player.get("death")) or 0
+    assists = to_int(player.get("assist")) or 0
+    traded_deaths = to_int(player.get("traded_death")) or 0
+
+    round_count = max(1, rounds)
+    death_rounds = min(max(0, deaths), round_count)
+    survived_rounds = max(0, round_count - death_rounds)
+    kill_rounds = estimate_kill_rounds(player, round_count)
+    assist_rounds = min(max(0, assists), round_count)
+
+    # KAST is a per-round union of Kill/Assist/Survive/Traded. The 5E map payload
+    # exposes aggregates, not the exact per-round union, so estimate only the
+    # death rounds that were likely covered by K/A, then add traded deaths.
+    death_rate = death_rounds / round_count
+    death_rounds_with_action = int(round((kill_rounds + assist_rounds) * death_rate * 0.8))
+    death_rounds_with_action = min(death_rounds, max(0, death_rounds_with_action))
+    traded_only_rounds = min(
+        max(0, death_rounds - death_rounds_with_action),
+        max(0, traded_deaths),
+    )
+    kast_rounds = min(round_count, survived_rounds + death_rounds_with_action + traded_only_rounds)
+    return format_number(kast_rounds / round_count * 100, 1)
+
+
+def estimate_impact(player: Dict[str, Any], rounds: Optional[int]) -> Optional[float]:
+    existing = to_float(player.get("impact"))
+    if existing is not None and existing > 0:
+        return existing
+    if not rounds or rounds <= 0:
+        return None
+
+    kills = to_int(player.get("kill")) or 0
+    assists = to_int(player.get("assist")) or 0
+    kpr = to_float(player.get("kpr"))
+    if kpr is None:
+        kpr = kills / rounds
+    apr = assists / rounds
+    return clamp((2.13 * kpr) + (0.42 * apr) - 0.41, 0.0, 3.0)
+
+
+def estimate_rating(player: Dict[str, Any], rounds: Optional[int], kast: str) -> str:
+    existing = normalize_text(player.get("rating") or player.get("Rating"))
+    if existing:
+        return existing
+    if not rounds or rounds <= 0:
+        return ""
+
+    kills = to_int(player.get("kill")) or 0
+    deaths = to_int(player.get("death")) or 0
+    adr = to_float(player.get("adr")) or 0.0
+    kpr = to_float(player.get("kpr"))
+    if kpr is None:
+        kpr = kills / rounds
+    dpr = to_float(player.get("dpr"))
+    if dpr is None:
+        dpr = deaths / rounds
+    kast_value = to_float(kast)
+    if kast_value is None:
+        kast_value = to_float(estimate_kast(player, rounds)) or 0.0
+    impact = estimate_impact(player, rounds) or 0.0
+
+    # Public HLTV Rating 2.0-style approximation. The official Rating 2.0
+    # formula is not published, so this is only used when the provider omits it.
+    rating = (
+        (0.0073 * kast_value)
+        + (0.3591 * kpr)
+        - (0.5329 * dpr)
+        + (0.2372 * impact)
+        + (0.0032 * adr)
+        + 0.1587
+    )
+    return format_number(clamp(rating, 0.0, 3.0), 2)
+
+
 def extract_map_player_rows(
     match_id: str,
     team1_id: str,
@@ -472,6 +805,7 @@ def extract_map_player_rows(
         map_index = to_int(bout.get("bout_num")) or fallback_idx
         map_name = normalize_text(bout.get("map_name"))
         bout_status = to_int(bout.get("status"))
+        round_count = extract_round_count_from_bout(bout)
 
         teams = [
             ("t1", team1_id, team1_name, bout.get("t1_pr_stats")),
@@ -483,6 +817,8 @@ def extract_map_player_rows(
             for idx, player in enumerate(players, start=1):
                 if not isinstance(player, dict):
                     continue
+                kast = estimate_kast(player, round_count)
+                rating = estimate_rating(player, round_count, kast)
                 rows.append(
                     {
                         "match_id": match_id,
@@ -495,10 +831,10 @@ def extract_map_player_rows(
                         "player_name": normalize_text(player.get("name")),
                         "country_name": normalize_text(player.get("country_name")),
                         "country_logo": normalize_text(player.get("country_logo")),
-                        "rating": normalize_text(player.get("rating")),
+                        "rating": rating,
                         "mk_rating": normalize_text(player.get("mk_rating")),
                         "adr": normalize_text(player.get("adr")),
-                        "kast": normalize_text(player.get("kast")),
+                        "kast": kast,
                         "kpr": normalize_text(player.get("kpr")),
                         "kill": to_int(player.get("kill")),
                         "death": to_int(player.get("death")),
@@ -513,6 +849,218 @@ def extract_map_player_rows(
                     }
                 )
     return rows
+
+
+def validate_completed_map_player_rows(
+    map_rows: List[Dict[str, Any]],
+    map_player_rows: List[Dict[str, Any]],
+) -> Tuple[bool, str]:
+    completed_map_indexes = {
+        to_int(row.get("map_index"))
+        for row in map_rows
+        if to_int(row.get("team1_score")) is not None
+        and to_int(row.get("team2_score")) is not None
+    }
+    completed_map_indexes = {idx for idx in completed_map_indexes if idx is not None}
+    if not completed_map_indexes:
+        return False, "data_no_completed_maps"
+
+    counts: Dict[Tuple[int, str], int] = {}
+    for row in map_player_rows:
+        map_index = to_int(row.get("map_index"))
+        if map_index not in completed_map_indexes:
+            continue
+        side = normalize_text(row.get("team_side")).lower()
+        if side in {"team1", "a", "1"}:
+            side = "t1"
+        elif side in {"team2", "b", "2"}:
+            side = "t2"
+        if side not in {"t1", "t2"}:
+            continue
+        counts[(map_index, side)] = counts.get((map_index, side), 0) + 1
+
+    missing: List[str] = []
+    for map_index in sorted(completed_map_indexes):
+        for side in ("t1", "t2"):
+            count = counts.get((map_index, side), 0)
+            if count < 5:
+                missing.append(f"map{map_index}:{side}={count}")
+
+    if missing:
+        return False, "data_incomplete_map_players:" + ",".join(missing)
+    return True, ""
+
+
+def player_group_key(row: Dict[str, Any]) -> str:
+    player_id = normalize_text(row.get("player_id"))
+    if player_id:
+        return f"id:{player_id}"
+    return (
+        f"name:{normalize_text(row.get('team_side')).lower()}:"
+        f"{normalize_text(row.get('player_name')).lower()}"
+    )
+
+
+def aggregate_map_player_rows(
+    map_rows: List[Dict[str, Any]],
+    map_player_rows: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    rounds_by_map: Dict[int, int] = {}
+    for row in map_rows:
+        map_index = to_int(row.get("map_index"))
+        if map_index is None:
+            continue
+        score1 = to_int(row.get("team1_score"))
+        score2 = to_int(row.get("team2_score"))
+        if score1 is None or score2 is None:
+            continue
+        round_count = score1 + score2
+        if round_count > 0:
+            rounds_by_map[map_index] = round_count
+
+    grouped: Dict[str, Dict[str, Any]] = {}
+    for row in map_player_rows:
+        key = player_group_key(row)
+        if not key:
+            continue
+        map_index = to_int(row.get("map_index"))
+        rounds = rounds_by_map.get(map_index or 0)
+        if not rounds:
+            continue
+
+        group = grouped.setdefault(
+            key,
+            {
+                "sample": row,
+                "rounds": 0,
+                "kills": 0,
+                "deaths": 0,
+                "assists": 0,
+                "adr_weighted": 0.0,
+                "kast_weighted": 0.0,
+                "rating_weighted": 0.0,
+                "mk_rating_weighted": 0.0,
+                "kast_rounds": 0,
+                "rating_rounds": 0,
+                "mk_rating_rounds": 0,
+            },
+        )
+        group["rounds"] += rounds
+        group["kills"] += to_int(row.get("kill")) or 0
+        group["deaths"] += to_int(row.get("death")) or 0
+        group["assists"] += to_int(row.get("assist")) or 0
+
+        adr = to_float(row.get("adr"))
+        if adr is not None:
+            group["adr_weighted"] += adr * rounds
+        kast = to_float(row.get("kast"))
+        if kast is not None:
+            group["kast_weighted"] += kast * rounds
+            group["kast_rounds"] += rounds
+        rating = to_float(row.get("rating"))
+        if rating is not None:
+            group["rating_weighted"] += rating * rounds
+            group["rating_rounds"] += rounds
+        mk_rating = to_float(row.get("mk_rating"))
+        if mk_rating is not None:
+            group["mk_rating_weighted"] += mk_rating * rounds
+            group["mk_rating_rounds"] += rounds
+
+    return grouped
+
+
+def apply_player_row_fallbacks(
+    player_rows: List[Dict[str, Any]],
+    map_rows: List[Dict[str, Any]],
+    map_player_rows: List[Dict[str, Any]],
+    fetched_at: str,
+) -> List[Dict[str, Any]]:
+    grouped = aggregate_map_player_rows(map_rows, map_player_rows)
+    if not grouped:
+        return player_rows
+
+    existing_keys = {player_group_key(row) for row in player_rows}
+    for row in player_rows:
+        group = grouped.get(player_group_key(row))
+        if not group:
+            continue
+        rounds = int(group.get("rounds") or 0)
+        if rounds <= 0:
+            continue
+        kills = int(group.get("kills") or 0)
+        deaths = int(group.get("deaths") or 0)
+
+        if not normalize_text(row.get("adr")):
+            row["adr"] = format_number(group.get("adr_weighted", 0.0) / rounds, 1)
+        if not normalize_text(row.get("kast")) and group.get("kast_rounds"):
+            row["kast"] = format_number(group.get("kast_weighted", 0.0) / group["kast_rounds"], 1)
+        if not normalize_text(row.get("rating")) and group.get("rating_rounds"):
+            row["rating"] = format_number(group.get("rating_weighted", 0.0) / group["rating_rounds"], 2)
+        if not normalize_text(row.get("mk_rating")) and group.get("mk_rating_rounds"):
+            row["mk_rating"] = format_number(
+                group.get("mk_rating_weighted", 0.0) / group["mk_rating_rounds"],
+                2,
+            )
+        if not normalize_text(row.get("kd")):
+            row["kd"] = format_number(kills / max(1, deaths), 2)
+        if not normalize_text(row.get("kpr")):
+            row["kpr"] = format_number(kills / rounds, 2)
+
+    next_index_by_side: Dict[str, int] = {}
+    for row in player_rows:
+        side = normalize_text(row.get("team_side")) or "t1"
+        next_index_by_side[side] = max(
+            next_index_by_side.get(side, 0),
+            to_int(row.get("stat_index")) or 0,
+        )
+
+    for key, group in grouped.items():
+        if key in existing_keys:
+            continue
+        sample = group.get("sample") or {}
+        rounds = int(group.get("rounds") or 0)
+        if rounds <= 0:
+            continue
+        kills = int(group.get("kills") or 0)
+        deaths = int(group.get("deaths") or 0)
+        side = normalize_text(sample.get("team_side")) or "t1"
+        next_index_by_side[side] = next_index_by_side.get(side, 0) + 1
+        player_rows.append(
+            {
+                "match_id": normalize_text(sample.get("match_id")),
+                "team_side": side,
+                "team_id": normalize_text(sample.get("team_id")),
+                "team_name": normalize_text(sample.get("team_name")),
+                "player_id": normalize_text(sample.get("player_id")),
+                "player_name": normalize_text(sample.get("player_name")),
+                "country_name": normalize_text(sample.get("country_name")),
+                "country_logo": normalize_text(sample.get("country_logo")),
+                "rating": (
+                    format_number(group.get("rating_weighted", 0.0) / group["rating_rounds"], 2)
+                    if group.get("rating_rounds")
+                    else ""
+                ),
+                "adr": format_number(group.get("adr_weighted", 0.0) / rounds, 1),
+                "kast": (
+                    format_number(group.get("kast_weighted", 0.0) / group["kast_rounds"], 1)
+                    if group.get("kast_rounds")
+                    else ""
+                ),
+                "kd": format_number(kills / max(1, deaths), 2),
+                "kpr": format_number(kills / rounds, 2),
+                "mk_rating": (
+                    format_number(group.get("mk_rating_weighted", 0.0) / group["mk_rating_rounds"], 2)
+                    if group.get("mk_rating_rounds")
+                    else ""
+                ),
+                "impact": "",
+                "swing": "",
+                "stat_index": next_index_by_side[side],
+                "fetched_at": fetched_at,
+            }
+        )
+
+    return player_rows
 
 
 def collect_event_log_aggregates(event_log_data: Any) -> Tuple[Optional[int], Optional[int], str]:
@@ -613,7 +1161,7 @@ def build_rows_for_match(
         "team2_form_rating": normalize_text(team2_stats.get("rating")),
         "team1_form_win_rate": normalize_text(team1_stats.get("win_rate")),
         "team2_form_win_rate": normalize_text(team2_stats.get("win_rate")),
-        "fetch_error": ",".join(errors),
+        "fetch_error": join_fetch_errors(errors),
         "fetched_at": fetched_at,
         "schema_version": SCHEMA_VERSION,
     }
@@ -636,6 +1184,17 @@ def build_rows_for_match(
         team2_name=team2_name,
         fetched_at=fetched_at,
     )
+    data_map_rows = parse_map_rows_from_data(
+        match_id=match_id,
+        team1_id=team1_id,
+        team1_name=team1_name,
+        team2_id=team2_id,
+        team2_name=team2_name,
+        data_data=data_data,
+        fetched_at=fetched_at,
+    )
+    map_rows = merge_map_rows(map_rows, data_map_rows)
+
     map_player_rows = extract_map_player_rows(
         match_id=match_id,
         team1_id=team1_id,
@@ -645,6 +1204,46 @@ def build_rows_for_match(
         data_data=data_data,
         fetched_at=fetched_at,
     )
+    data_complete, data_completeness_error = validate_completed_map_player_rows(
+        map_rows,
+        map_player_rows,
+    )
+    if not data_complete:
+        detail_row["data_success"] = 0
+        if data_completeness_error:
+            errors.append(data_completeness_error)
+            detail_row["fetch_error"] = join_fetch_errors(errors)
+
+    derived_score1, derived_score2, derived_bout_count, derived_bout_details = derive_match_fields_from_maps(
+        map_rows
+    )
+    if detail_row.get("score1") is None and derived_score1 is not None:
+        detail_row["score1"] = derived_score1
+    if detail_row.get("score2") is None and derived_score2 is not None:
+        detail_row["score2"] = derived_score2
+    if (to_int(detail_row.get("score1")) or 0) == 0 and (to_int(detail_row.get("score2")) or 0) == 0:
+        if derived_score1 is not None and derived_score2 is not None:
+            detail_row["score1"] = derived_score1
+            detail_row["score2"] = derived_score2
+
+    if not normalize_text(detail_row.get("bout_details")) and derived_bout_details:
+        detail_row["bout_details"] = derived_bout_details
+    if not to_int(detail_row.get("bout_count")) and derived_bout_count > 0:
+        detail_row["bout_count"] = derived_bout_count
+
+    player_rows = apply_player_row_fallbacks(
+        player_rows,
+        map_rows,
+        map_player_rows,
+        fetched_at,
+    )
+
+    # Keep derived fields for optional backfill into match_result/match_schedule by caller.
+    detail_row["_derived_score1"] = derived_score1
+    detail_row["_derived_score2"] = derived_score2
+    detail_row["_derived_bout_count"] = derived_bout_count
+    detail_row["_derived_bout_details"] = derived_bout_details
+
     return detail_row, player_rows, map_rows, map_player_rows
 
 

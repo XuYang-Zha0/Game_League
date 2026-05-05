@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
+  gameId: { type: String, default: 'cs2' },
   state: { type: String, default: 'idle' },
   error: { type: String, default: '' },
   detail: { type: Object, default: null },
@@ -17,6 +18,7 @@ const props = defineProps({
     type: Function,
     default: (name) => String(name || '-').trim() || '-',
   },
+  imageErrorHandler: { type: Function, default: null },
 })
 
 defineEmits(['back'])
@@ -106,17 +108,55 @@ const teamBPlayers = computed(() => {
 const hasAnyPlayerStats = computed(() => teamAPlayers.value.length > 0 || teamBPlayers.value.length > 0)
 const selectedTeamAPlayerKey = ref('')
 const selectedTeamBPlayerKey = ref('')
+const brokenImageMap = ref({})
+
+const imageKeysFor = (value) => {
+  const raw = String(value || '').trim()
+  if (!raw) return []
+  const keys = [raw]
+  if (typeof window !== 'undefined') {
+    try {
+      keys.push(new URL(raw, window.location.href).href)
+    } catch (e) {
+      // Keep the raw key when URL normalization is unavailable.
+    }
+  }
+  return [...new Set(keys)]
+}
+
+const isBrokenImage = (value) => imageKeysFor(value).some((key) => brokenImageMap.value[key])
+
+const usableImage = (value) => {
+  const src = String(value || '').trim()
+  return src && !isBrokenImage(src) ? src : ''
+}
+
+const handleImageError = (event) => {
+  const target = event?.currentTarget || event?.target
+  const keys = [
+    ...imageKeysFor(target?.getAttribute?.('src')),
+    ...imageKeysFor(target?.currentSrc),
+    ...imageKeysFor(target?.src),
+  ]
+  if (keys.length) {
+    const next = { ...brokenImageMap.value }
+    for (const key of keys) next[key] = true
+    brokenImageMap.value = next
+  }
+  if (typeof props.imageErrorHandler === 'function') props.imageErrorHandler(event)
+}
+
 const teamALogo = computed(() =>
-  String(
+  usableImage(
     props.ensureCroppedLogo?.(props.detail?.teamA?.logo, props.detail?.teamA?.name) ||
       '',
-  ).trim(),
+  ),
 )
 const teamBLogo = computed(() =>
-  String(
+  usableImage(
     props.ensureCroppedLogo?.(props.detail?.teamB?.logo, props.detail?.teamB?.name) ||
       '',
-  ).trim(),
+  ),
 )
 
 const toMetricNumber = (value) => {
@@ -175,6 +215,7 @@ const activeTeamAPlayer = computed(() =>
 const activeTeamBPlayer = computed(() =>
   resolveActivePlayer(teamBPlayers.value, selectedTeamBPlayerKey.value),
 )
+const isLolGame = computed(() => props.gameId === 'lol')
 
 const selectActivePlayer = (teamSide, key) => {
   if (teamSide === 'teamA') {
@@ -186,7 +227,7 @@ const selectActivePlayer = (teamSide, key) => {
 
 const playerAvatarSrc = (player) => {
   const avatar = String(player?.avatar ?? '').trim()
-  if (avatar) return avatar
+  if (usableImage(avatar)) return avatar
   return ''
 }
 
@@ -195,14 +236,25 @@ const playerInitial = (player) => {
   return name ? name.slice(0, 1).toUpperCase() : '?'
 }
 
-const playerStatsItems = (player) => [
-  { label: 'Rating', value: valueOrDash(player?.rating) },
-  { label: 'ADR', value: valueOrDash(player?.adr) },
-  { label: 'KAST', value: valueOrDash(player?.kast) },
-  { label: 'KPR', value: valueOrDash(player?.kpr) },
-  { label: 'KD', value: valueOrDash(player?.kd) },
-  { label: 'K/D/A', value: kdaText(player) },
-]
+const playerStatsItems = (player) => {
+  if (isLolGame.value) {
+    return [
+      { label: '英雄', value: valueOrDash(player?.champion) },
+      { label: 'KDA', value: valueOrDash(player?.kda || player?.rating) },
+      { label: 'K/D/A', value: kdaText(player) },
+      { label: '补刀', value: valueOrDash(player?.cs) },
+    ]
+  }
+
+  return [
+    { label: 'Rating', value: valueOrDash(player?.rating) },
+    { label: 'ADR', value: valueOrDash(player?.adr) },
+    { label: 'KAST', value: valueOrDash(player?.kast) },
+    { label: 'KPR', value: valueOrDash(player?.kpr) },
+    { label: 'KD', value: valueOrDash(player?.kd) },
+    { label: 'K/D/A', value: kdaText(player) },
+  ]
+}
 
 const resolveMapImageSrc = (mapName) => String(props.resolveMapImage?.(mapName) || '').trim()
 const resolveMapLabel = (mapName) =>
@@ -270,7 +322,7 @@ const valueOrDash = (value) => {
 
       <div class="match-detail-scoreboard">
         <div class="match-detail-team team-a">
-          <img v-if="teamALogo" :src="teamALogo" alt="" loading="lazy" />
+          <img v-if="teamALogo" :src="teamALogo" alt="" loading="lazy" @error="handleImageError" />
           <span>{{ detail.teamA?.name || '-' }}</span>
         </div>
         <div class="match-detail-score">
@@ -280,7 +332,7 @@ const valueOrDash = (value) => {
         </div>
         <div class="match-detail-team team-b">
           <span>{{ detail.teamB?.name || '-' }}</span>
-          <img v-if="teamBLogo" :src="teamBLogo" alt="" loading="lazy" />
+          <img v-if="teamBLogo" :src="teamBLogo" alt="" loading="lazy" @error="handleImageError" />
         </div>
       </div>
 
@@ -348,8 +400,10 @@ const valueOrDash = (value) => {
                   :src="playerAvatarSrc(activeTeamAPlayer)"
                   alt=""
                   loading="lazy"
+                  referrerpolicy="no-referrer"
+                  @error="handleImageError"
                 />
-                <span v-else>{{ playerInitial(activeTeamAPlayer) }}</span>
+                <span v-else class="player-focus-fallback">{{ playerInitial(activeTeamAPlayer) }}</span>
               </div>
               <p class="player-focus-name">{{ activeTeamAPlayer?.name || '-' }}</p>
             </div>
@@ -377,8 +431,10 @@ const valueOrDash = (value) => {
                   :src="playerAvatarSrc(activeTeamBPlayer)"
                   alt=""
                   loading="lazy"
+                  referrerpolicy="no-referrer"
+                  @error="handleImageError"
                 />
-                <span v-else>{{ playerInitial(activeTeamBPlayer) }}</span>
+                <span v-else class="player-focus-fallback">{{ playerInitial(activeTeamBPlayer) }}</span>
               </div>
               <p class="player-focus-name">{{ activeTeamBPlayer?.name || '-' }}</p>
             </div>

@@ -30,6 +30,13 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
+# Local data exports
+backend/lol/lol_data/
+backend/valorant/vlr_cache/
+backend/valorant/vlr_realtime_data/
+backend/valorant/image_cache/
+backend/valorant/.vlr_probe/
+
 # OS / editor
 .DS_Store
 .idea/

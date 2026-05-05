@@ -1,0 +1,60 @@
+﻿event_id,event_name,source,source_event_url,fetched_at
+worlds_2023,Worlds 2023,lolesports,https://lolesports.com/schedule?leagues=worlds,2026-05-01 18:31:20
+worlds_2024,Worlds 2024,lolesports,https://lolesports.com/schedule?leagues=worlds,2026-05-01 18:31:20
+worlds_2025,Worlds 2025,lolesports,https://lolesports.com/schedule?leagues=worlds,2026-05-01 18:31:20
+msi_2023,MSI 2023,lolesports,https://lolesports.com/schedule?leagues=msi,2026-05-01 18:31:21
+msi_2024,MSI 2024,lolesports,https://lolesports.com/schedule?leagues=msi,2026-05-01 18:31:21
+msi_2025,MSI 2025,lolesports,https://lolesports.com/schedule?leagues=msi,2026-05-01 18:31:21
+msi_2026,MSI 2026,lolesports,https://lolesports.com/schedule?leagues=msi,2026-05-01 18:31:21
+first_stand_2025,First Stand 2025,lolesports,https://lolesports.com/schedule?leagues=first_stand,2026-05-01 18:31:21
+first_stand_2026,First Stand 2026,lolesports,https://lolesports.com/schedule?leagues=first_stand,2026-05-01 18:31:21
+lck_2023,LCK 2023,lolesports,https://lolesports.com/schedule?leagues=lck,2026-05-01 18:31:27
+lck_2024,LCK 2024,lolesports,https://lolesports.com/schedule?leagues=lck,2026-05-01 18:31:27
+lck_2025,LCK 2025,lolesports,https://lolesports.com/schedule?leagues=lck,2026-05-01 18:31:27
+lck_2026,LCK 2026,lolesports,https://lolesports.com/schedule?leagues=lck,2026-05-01 18:31:27
+lpl_2023,LPL 2023,lolesports,https://lolesports.com/schedule?leagues=lpl,2026-05-01 18:31:32
+lpl_2024,LPL 2024,lolesports,https://lolesports.com/schedule?leagues=lpl,2026-05-01 18:31:32
+lpl_2025,LPL 2025,lolesports,https://lolesports.com/schedule?leagues=lpl,2026-05-01 18:31:32
+lpl_2026,LPL 2026,lolesports,https://lolesports.com/schedule?leagues=lpl,2026-05-01 18:31:32
+lec_2023,LEC 2023,lolesports,https://lolesports.com/schedule?leagues=lec,2026-05-01 18:31:36
+lec_2024,LEC 2024,lolesports,https://lolesports.com/schedule?leagues=lec,2026-05-01 18:31:36
+lec_2025,LEC 2025,lolesports,https://lolesports.com/schedule?leagues=lec,2026-05-01 18:31:36
+lec_2026,LEC 2026,lolesports,https://lolesports.com/schedule?leagues=lec,2026-05-01 18:31:36
+lcp_2025,LCP 2025,lolesports,https://lolesports.com/schedule?leagues=lcp,2026-05-01 18:31:38
+lcp_2026,LCP 2026,lolesports,https://lolesports.com/schedule?leagues=lcp,2026-05-01 18:31:38
+lcs_2023,LCS 2023,lolesports,https://lolesports.com/schedule?leagues=lcs,2026-05-01 18:31:40
+lcs_2024,LCS 2024,lolesports,https://lolesports.com/schedule?leagues=lcs,2026-05-01 18:31:40
+lcs_2026,LCS 2026,lolesports,https://lolesports.com/schedule?leagues=lcs,2026-05-01 18:31:40
+cblol-brazil_2023,CBLOL 2023,lolesports,https://lolesports.com/schedule?leagues=cblol-brazil,2026-05-01 18:31:43
+cblol-brazil_2024,CBLOL 2024,lolesports,https://lolesports.com/schedule?leagues=cblol-brazil,2026-05-01 18:31:43
+cblol-brazil_2026,CBLOL 2026,lolesports,https://lolesports.com/schedule?leagues=cblol-brazil,2026-05-01 18:31:43
+vcs_2023,VCS 2023,lolesports,https://lolesports.com/schedule?leagues=vcs,2026-05-01 18:31:44
+vcs_2024,VCS 2024,lolesports,https://lolesports.com/schedule?leagues=vcs,2026-05-01 18:31:44
+vcs_2025,VCS 2025,lolesports,https://lolesports.com/schedule?leagues=vcs,2026-05-01 18:31:44
+vcs_2026,VCS 2026,lolesports,https://lolesports.com/schedule?leagues=vcs,2026-05-01 18:31:44
+pcs_2023,PCS 2023,lolesports,https://lolesports.com/schedule?leagues=pcs,2026-05-01 18:31:47
+pcs_2024,PCS 2024,lolesports,https://lolesports.com/schedule?leagues=pcs,2026-05-01 18:31:47
+pcs_2025,PCS 2025,lolesports,https://lolesports.com/schedule?leagues=pcs,2026-05-01 18:31:47
+pcs_2026,PCS 2026,lolesports,https://lolesports.com/schedule?leagues=pcs,2026-05-01 18:31:47
+lla_2023,LLA 2023,lolesports,https://lolesports.com/schedule?leagues=lla,2026-05-01 18:31:48
+lla_2024,LLA 2024,lolesports,https://lolesports.com/schedule?leagues=lla,2026-05-01 18:31:48
+worlds_2025_main_event,Worlds 2025 Main Event,gol.gg,https://gol.gg/tournament/tournament-matchlist/Worlds%202025%20Main%20Event/,2026-05-01 18:31:18
+lck_spring_2023,LCK Spring 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LCK%20Spring%202023/,2026-05-01 18:38:42
+lck_spring_playoffs_2023,LCK Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LCK%20Spring%20Playoffs%202023/,2026-05-01 18:38:44
+lpl_spring_2023,LPL Spring 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LPL%20Spring%202023/,2026-05-01 18:38:46
+lpl_spring_playoffs_2023,LPL Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LPL%20Spring%20Playoffs%202023/,2026-05-01 18:38:47
+lec_winter_2023,LEC Winter 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LEC%20Winter%202023/,2026-05-01 18:38:49
+lec_winter_playoffs_2023,LEC Winter Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LEC%20Winter%20Playoffs%202023/,2026-05-01 18:38:54
+lec_spring_season_2023,LEC Spring Season 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LEC%20Spring%20Season%202023/,2026-05-01 18:38:55
+lec_spring_groups_2023,LEC Spring Groups 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LEC%20Spring%20Groups%202023/,2026-05-01 18:38:56
+lec_spring_playoffs_2023,LEC Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LEC%20Spring%20Playoffs%202023/,2026-05-01 18:38:57
+lcs_spring_2023,LCS Spring 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LCS%20Spring%202023/,2026-05-01 18:39:00
+lcs_spring_playoffs_2023,LCS Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LCS%20Spring%20Playoffs%202023/,2026-05-01 18:39:01
+cblol_split_1_2023,CBLOL Split 1 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/CBLOL%20Split%201%202023/,2026-05-01 18:39:02
+cblol_split_1_playoffs_2023,CBLOL Split 1 Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/CBLOL%20Split%201%20Playoffs%202023/,2026-05-01 18:39:03
+pcs_spring_2023,PCS Spring 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/PCS%20Spring%202023/,2026-05-01 18:39:04
+pcs_spring_playoffs_2023,PCS Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/PCS%20Spring%20Playoffs%202023/,2026-05-01 18:39:11
+vcs_spring_2023,VCS Spring 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/VCS%20Spring%202023/,2026-05-01 18:39:13
+vcs_spring_playoffs_2023,VCS Spring Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/VCS%20Spring%20Playoffs%202023/,2026-05-01 18:39:15
+lla_opening_2023,LLA Opening 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LLA%20Opening%202023/,2026-05-01 18:39:16
+lla_opening_playoffs_2023,LLA Opening Playoffs 2023,gol.gg,https://gol.gg/tournament/tournament-matchlist/LLA%20Opening%20Playoffs%202023/,2026-05-01 18:39:17
