@@ -1105,7 +1105,7 @@ def build_players(
                 pb.name AS player_name,
                 pb.team_id,
                 COALESCE(pb.team_name, tb.team_name) AS team_name,
-                pb.position,
+                COALESCE(NULLIF(pb.position, ''), pb.positions) AS position,
                 pb.rating,
                 pb.impact,
                 pb.adr,
@@ -3434,7 +3434,7 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
                     COALESCE(name, player_id) AS name,
                     COALESCE(NULLIF(portrait, ''), NULLIF(half_portrait, '')) AS avatar,
                     country_logo AS countryLogo,
-                    position,
+                    COALESCE(NULLIF(position, ''), positions) AS position,
                     rating
                 FROM player_basic
                 WHERE team_id = %s
@@ -3453,7 +3453,7 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
                     COALESCE(name, player_id) AS name,
                     COALESCE(NULLIF(portrait, ''), NULLIF(half_portrait, '')) AS avatar,
                     country_logo AS countryLogo,
-                    position,
+                    COALESCE(NULLIF(position, ''), positions) AS position,
                     rating
                 FROM player_basic
                 WHERE team_name = %s
