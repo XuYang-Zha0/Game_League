@@ -1617,6 +1617,23 @@ const playerPrimaryMetricValue = (row) =>
   row?.primaryMetricValue || row?.kda || row?.rating || '-'
 const playerSecondaryMetricValue = (row) =>
   row?.secondaryMetricValue || row?.gamesPlayed || row?.impact || '-'
+const playerScoreValue = (row) => {
+  if (!row) return '-'
+  if (isLolGame.value) {
+    const kda = parseFloat(row.rating || row.kda || 0)
+    if (!kda || kda <= 0) return '-'
+    return Math.min(99, Math.max(1, Math.round(kda * 15)))
+  }
+  if (isValorantGame.value) {
+    const kd = parseFloat(row.rating || row.kd || 0)
+    if (!kd || kd <= 0) return '-'
+    return Math.min(99, Math.max(1, Math.round((kd - 0.5) * 100)))
+  }
+  const rating = parseFloat(row.rating || 0)
+  if (!rating || rating <= 0) return '-'
+  return Math.min(99, Math.max(1, Math.round((rating - 0.6) * 140)))
+}
+
 const playerSearchMetricText = (row) =>
   `${playerPrimaryMetricLabel.value} ${playerPrimaryMetricValue(row)}`
 
@@ -2661,7 +2678,7 @@ onBeforeUnmount(() => {
               <span>{{ group.rows.length }} 名选手</span>
             </div>
             <div class="table-wrap">
-              <div class="table-head player-grid"><span>赛区排名</span><span>选手</span><span>所属战队</span><span>位置</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>指标</span></div>
+              <div class="table-head player-grid"><span>赛区排名</span><span>选手</span><span>所属战队</span><span>位置</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>评分</span></div>
               <div v-for="row in group.rows" :key="row.playerKey || row.playerId" class="table-row player-grid">
                 <span>{{ row.displayRank || row.rank || '-' }}</span>
                 <span class="player-cell">
@@ -2669,7 +2686,7 @@ onBeforeUnmount(() => {
                   <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
                   <button class="link-btn player-name" type="button" @click="openPlayerDetail(row)">{{ row.name }}</button>
                 </span>
-                <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ row.highlight }}</span>
+                <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ playerScoreValue(row) }}</span>
               </div>
             </div>
           </section>
@@ -2677,7 +2694,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else class="table-wrap player-scroll-wrap" @scroll.passive="handlePlayerScroll">
-          <div class="table-head player-grid"><span>排名</span><span>选手</span><span>所属战队</span><span>角色</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>指标</span></div>
+          <div class="table-head player-grid"><span>排名</span><span>选手</span><span>所属战队</span><span>角色</span><span>{{ playerPrimaryMetricLabel }}</span><span>{{ playerSecondaryMetricLabel }}</span><span>评分</span></div>
           <div v-if="!playerRowsWithRank.length" class="empty-state">暂无匹配数据</div>
           <div v-for="row in visiblePlayerRowsWithRank" :key="row.playerKey || row.playerId" class="table-row player-grid">
             <span>{{ row.displayRank }}</span>
@@ -2686,7 +2703,7 @@ onBeforeUnmount(() => {
               <b v-else class="player-avatar-fallback">{{ playerInitial(row.name) }}</b>
               <button class="link-btn player-name" type="button" @click="openPlayerDetail(row)">{{ row.name }}</button>
             </span>
-            <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ row.highlight }}</span>
+            <span>{{ row.team }}</span><span>{{ row.role }}</span><span>{{ playerPrimaryMetricValue(row) }}</span><span>{{ playerSecondaryMetricValue(row) }}</span><span>{{ playerScoreValue(row) }}</span>
           </div>
           <button v-if="hasMorePlayerRows" class="outline-btn load-more-btn" type="button" @click="loadMorePlayerRows">加载更多</button>
         </div>
