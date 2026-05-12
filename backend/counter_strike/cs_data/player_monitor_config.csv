@@ -1132,72 +1132,29 @@ csgo_pl_20309,,,,
 csgo_pl_14007,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_21337,,,,
 csgo_pl_22267,,,,
-csgo_pl_11890,,,,
-csgo_pl_11922,,,,
-csgo_pl_12027,16:9,Computer Monitor,1920x1080,Native
-csgo_pl_13669,16:9,Computer Monitor,1920x1080,Native
 csgo_pl_16645,,,,
-csgo_pl_18553,,,,
 csgo_pl_21509,,,,
 csgo_pl_22456,,,,
 csgo_pl_21825,,,,
 csgo_pl_25108,,,,
-csgo_pl_25712,,,,
 csgo_pl_25703,,,,
 csgo_pl_25326,,,,
-csgo_pl_25138,,,,
 csgo_pl_8622,,,,
 csgo_pl_25777,,,,
 csgo_pl_9736,,,,
-csgo_pl_24954,,,,
 csgo_pl_25053,,,,
-csgo_pl_25710,,,,
-csgo_pl_9144,,,,
 csgo_pl_25424,,,,
-csgo_pl_26073,,,,
 csgo_pl_9245,,,,
-csgo_pl_9896,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_9626,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_6553,,,,
-csgo_pl_25576,,,,
-csgo_pl_7700,4:3,,1152x864,Stretched
 csgo_pl_11215,,,,
 csgo_pl_18361,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_11141,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_11498,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_11872,,,,
-csgo_pl_13982,5:4,Computer Monitor,1280x1024,Black Bars
 csgo_pl_14148,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_14236,,,,
-csgo_pl_17113,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_18510,,,,
-csgo_pl_18610,,,,
 csgo_pl_21445,,,,
 csgo_pl_22066,,,,
 csgo_pl_21813,,,,
 csgo_pl_22000,,,,
-csgo_pl_23553,,,,
-csgo_pl_20584,,,,
-csgo_pl_22674,,,,
-csgo_pl_22203,,,,
-csgo_pl_11893,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_16693,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_11816,16:9,Computer Monitor,1920x1080,Native
-csgo_pl_18462,5:4,Computer Monitor,1280x1024,Stretched
-csgo_pl_7322,4:3,Computer Monitor,1024x768,Stretched
-csgo_pl_20903,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_8918,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_7998,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_23140,,,,
-csgo_pl_19972,,,,
-csgo_pl_22085,,,,
-csgo_pl_24930,,,,
-csgo_pl_16817,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_14394,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_6593,4:3,Computer Monitor,1152x864,Stretched
-csgo_pl_23960,,,,
-csgo_pl_11276,,,,
-csgo_pl_24244,4:3,,1280x960,Stretched
 csgo_pl_20284,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_24243,4:3,,1024x768,Stretched
 csgo_pl_22481,,,,
@@ -1260,11 +1217,7 @@ csgo_pl_20336,,,,
 csgo_pl_20351,,,,
 csgo_pl_20340,,,,
 csgo_pl_12875,,,,
-csgo_pl_13240,4:3,Computer Monitor,1280x960,Stretched
-csgo_pl_13281,4:3,Computer Monitor,1440x1080,Stretched
 csgo_pl_20339,,,,
-csgo_pl_16948,,,,
-csgo_pl_18670,4:3,Computer Monitor,1280x960,Stretched
 csgo_pl_19730,,,,
 csgo_pl_14294,,,,
 csgo_pl_23906,,,,
@@ -1300,7 +1253,6 @@ csgo_pl_21988,4:3,,1280x960,Stretched
 csgo_pl_25254,4:3,,1280x960,Stretched
 csgo_pl_22879,,,,
 csgo_pl_22430,,,,
-csgo_pl_13679,,,,
 csgo_pl_22961,,,,
 csgo_pl_22883,,,,
 csgo_pl_25423,,,,
@@ -1328,8 +1280,6 @@ csgo_pl_22076,,,,
 csgo_pl_23858,,,,
 csgo_pl_19874,,,,
 csgo_pl_24173,,,,
-csgo_pl_10506,,,,
-csgo_pl_17288,,,,
 csgo_pl_16340,,,,
 csgo_pl_22126,,,,
 cg_pl_20251112165738yaovo,,,,
@@ -1682,3 +1632,53 @@ csgo_pl_13578,4:3,Computer Monitor,1280x960,Black Bars
 csgo_pl_13249,16:9,Computer Monitor,1920x1080,Native
 csgo_pl_7687,16:10,Computer Monitor,1680x1050,Stretched
 csgo_pl_20761,4:3,Computer Monitor,1152x864,Stretched
+csgo_pl_25710,,,,
+csgo_pl_24954,,,,
+csgo_pl_26073,,,,
+csgo_pl_25138,,,,
+csgo_pl_9144,,,,
+csgo_pl_25712,,,,
+csgo_pl_11890,,,,
+csgo_pl_11922,,,,
+csgo_pl_12027,16:9,Computer Monitor,1920x1080,Native
+csgo_pl_13669,16:9,Computer Monitor,1920x1080,Native
+csgo_pl_18553,,,,
+csgo_pl_9626,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_7700,4:3,,1152x864,Stretched
+csgo_pl_9896,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_25576,,,,
+csgo_pl_10506,,,,
+csgo_pl_11498,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_11872,,,,
+csgo_pl_13240,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_13281,4:3,Computer Monitor,1440x1080,Stretched
+csgo_pl_13679,,,,
+csgo_pl_13982,5:4,Computer Monitor,1280x1024,Black Bars
+csgo_pl_14236,,,,
+csgo_pl_16948,,,,
+csgo_pl_17113,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_17288,,,,
+csgo_pl_18670,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_23553,,,,
+csgo_pl_20584,,,,
+csgo_pl_22674,,,,
+csgo_pl_22203,,,,
+csgo_pl_11893,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_16693,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_11816,16:9,Computer Monitor,1920x1080,Native
+csgo_pl_18462,5:4,Computer Monitor,1280x1024,Stretched
+csgo_pl_7322,4:3,Computer Monitor,1024x768,Stretched
+csgo_pl_20903,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_8918,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_7998,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_23140,,,,
+csgo_pl_24930,,,,
+csgo_pl_19972,,,,
+csgo_pl_22085,,,,
+csgo_pl_16817,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_14394,4:3,Computer Monitor,1280x960,Stretched
+csgo_pl_18610,,,,
+csgo_pl_6593,4:3,Computer Monitor,1152x864,Stretched
+csgo_pl_23960,,,,
+csgo_pl_11276,,,,
+csgo_pl_24244,4:3,,1280x960,Stretched
