@@ -16,6 +16,7 @@ SCRIPT_VERSION = "realtime-sync-v2-quoted-columns"
 PLAYER_REFRESH_SEEN: Dict[str, float] = {}
 TEAM_ROSTER_LAST_REFRESH_TS = 0.0
 TEAM_SNAPSHOT_LAST_REFRESH_TS = 0.0
+_BILIBILI_LAST_SYNC_TS = 0.0
 
 
 def build_args() -> argparse.Namespace:
@@ -640,9 +641,26 @@ def sync_detail_once(
         map_columns=map_columns,
         map_player_columns=map_player_columns,
     )
+
+    # Import round events for matches belonging to configured tournaments
+    round_event_count = 0
+    try:
+        from match_result_detail import import_round_events_for_match  # pylint: disable=import-outside-toplevel
+        for candidate in candidates:
+            event_name = str(candidate.get("event_name") or "").strip()
+            match_id = str(candidate.get("match_id") or "").strip()
+            if not match_id:
+                continue
+            imported = import_round_events_for_match(match_id, event_name, db_config)
+            if imported:
+                round_event_count += imported
+    except Exception:
+        pass
+
     return {
         "candidates": len(candidates),
         "processed": len(packages),
+        "round_events_imported": round_event_count,
         **stats,
     }
 
@@ -1455,6 +1473,29 @@ def reconcile_stale_live_status(
     return out
 
 
+def maybe_sync_bilibili_index(*, interval_hours: int = 2) -> None:
+    """每隔 interval_hours 小时从 B 站同步一次 CSGO官方赛事 视频索引，写入共享 JSON 供 API 服务读取"""
+    global _BILIBILI_LAST_SYNC_TS
+    now = time.time()
+    if now - _BILIBILI_LAST_SYNC_TS < interval_hours * 3600:
+        return
+    try:
+        _backend_dir = str(Path(__file__).resolve().parent.parent)
+        if _backend_dir not in sys.path:
+            sys.path.insert(0, _backend_dir)
+        from scripts.bilibili_video_sync import sync_videos
+        import json as _json
+        idx = sync_videos()
+        if idx:
+            _cache_path = os.path.join(_backend_dir, "scripts", "bilibili_synced_index.json")
+            with open(_cache_path, "w", encoding="utf-8") as _f:
+                _json.dump({"updated_at": now, "count": len(idx), "index": idx}, _f, ensure_ascii=False)
+            _BILIBILI_LAST_SYNC_TS = now
+            print(f"[realtime-sync] bilibili index refreshed: {len(idx)} videos -> {_cache_path}", flush=True)
+    except Exception as exc:
+        print(f"[realtime-sync] bilibili sync failed: {exc}", flush=True)
+
+
 def main() -> int:
     args = build_args()
     configure_env(args)
@@ -1504,6 +1545,7 @@ def main() -> int:
             cycle_start = datetime.now()
             ts = cycle_start.strftime("%Y-%m-%d %H:%M:%S")
             try:
+                maybe_sync_bilibili_index(interval_hours=2)
                 counts = run_live_sync_once()
                 stale_fix_counts = reconcile_stale_live_status(
                     DB_CONFIG,
@@ -1566,6 +1608,7 @@ def main() -> int:
                         f" player_rows={detail_counts.get('player_rows', 0)}"
                         f" map_rows={detail_counts.get('map_rows', 0)}"
                         f" map_player_rows={detail_counts.get('map_player_rows', 0)}"
+                        f" round_events={detail_counts.get('round_events_imported', 0)}"
                     )
                     if not args.disable_player_refresh:
                         recent_player_ids = collect_recent_synced_player_ids(

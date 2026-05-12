@@ -30,6 +30,9 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
+# Bilibili sync runtime cache
+backend/scripts/bilibili_synced_index.json
+
 # Local data exports
 backend/lol/lol_data/
 backend/valorant/vlr_cache/

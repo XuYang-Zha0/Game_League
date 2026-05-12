@@ -1328,20 +1328,26 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
             member["avatar"] = proxied_image_url(member.get("avatar"))
     recent = []
     if table_exists(cur, "valorant_match_result"):
-        recent = [
-            build_match_payload(row)
-            for row in fetch_all(
-                cur,
-                """
-                SELECT *
-                FROM valorant_match_result
-                WHERE team1 = %s OR team2 = %s
-                ORDER BY match_time DESC
-                LIMIT 20
-                """,
-                (name, name),
-            )
-        ]
+        for row in fetch_all(
+            cur,
+            """
+            SELECT *
+            FROM valorant_match_result
+            WHERE team1 = %s OR team2 = %s
+            ORDER BY match_time DESC
+            LIMIT 20
+            """,
+            (name, name),
+        ):
+            item = build_match_payload(row)
+            if item.get("statusCode") != 2 or item.get("score") in (None, "", "-") or item.get("winner") in (None, "", "-"):
+                continue
+            is_team_a = str(row.get("team1") or "") == name
+            opponent = row.get("team2") if is_team_a else row.get("team1")
+            item["teamName"] = name
+            item["opponent"] = opponent or "-"
+            item["result"] = "胜" if item.get("winner") == name else "负"
+            recent.append(item)
     wins = sum(1 for row in recent if row.get("winner") == name)
     losses = max(0, len(recent) - wins)
     total = wins + losses

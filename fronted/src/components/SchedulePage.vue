@@ -20,6 +20,9 @@ const props = defineProps({
   isResultLoser: { type: Function, required: true },
   resolveMatchKickoffTime: { type: Function, required: true },
   resolveScheduleStatusText: { type: Function, required: true },
+  resolveRowTierText: { type: Function, default: () => '' },
+  resolveSchedulePrediction: { type: Function, default: () => ({ available: false, label: '预测待定', reason: '数据不足' }) },
+  isTbdTeamName: { type: Function, default: () => false },
   imageErrorHandler: { type: Function, default: null },
 })
 
@@ -71,6 +74,15 @@ const handleScheduleScroll = (event) => {
     loadMoreRows()
   }
 }
+
+const scheduleTierLabel = (row) => String(props.resolveRowTierText(row) || '-').trim() || '-'
+const scheduleCardTone = (row) => {
+  const status = props.resolveScheduleStatusText(row)
+  if (status === '进行中') return 'live'
+  if (props.viewMode === 'result') return 'result'
+  return 'fixture'
+}
+const predictionBarStyle = (prediction) => ({ '--prediction-a': `${prediction?.teamAProbability || 50}%` })
 </script>
 
 <template>
@@ -132,18 +144,6 @@ const handleScheduleScroll = (event) => {
 
     <div v-if="error" class="empty-state">{{ error }}</div>
     <div v-else class="table-wrap schedule-scroll-wrap" @scroll="handleScheduleScroll">
-      <div class="table-head schedule-grid schedule-head-sticky">
-        <span>日期</span>
-        <span>赛事</span>
-        <span class="schedule-head-matchup">
-          <span class="schedule-head-side" aria-hidden="true"></span>
-          <span class="schedule-head-score">对阵</span>
-          <span class="schedule-head-side" aria-hidden="true"></span>
-        </span>
-        <span>时间</span>
-        <span class="schedule-stage-head">赛段</span>
-        <span>状态</span>
-      </div>
       <div v-if="loading && !groupedVisibleRows.length" class="empty-state">正在从数据库加载筛选结果...</div>
       <div v-else-if="!groupedVisibleRows.length" class="empty-state">暂无匹配数据</div>
       <template v-else>
@@ -152,77 +152,88 @@ const handleScheduleScroll = (event) => {
           :key="group.date"
           class="schedule-day-block"
         >
-          <div class="schedule-day-title">{{ group.date }}</div>
-          <div
-            v-for="row in group.rows"
-            :key="row.matchId || `${resolveMatchDateText(row)}-${row.tournament}-${row.teamA}-${row.teamB}-${row.matchTime || ''}`"
-            class="table-row schedule-grid schedule-clickable-row"
-            @click="$emit('open-match', row)"
-          >
-            <span>{{ resolveMatchDateText(row) }}</span>
-            <span>{{ row.tournament || '-' }}</span>
-            <span class="matchup-cell schedule-matchup-cell">
-              <span
-                class="team-with-logo schedule-team-side-a"
-                :class="{
-                  'schedule-side-winner': isResultWinner(row, 'A'),
-                  'schedule-side-loser': isResultLoser(row, 'A'),
-                }"
-              >
-                <span v-if="resolveMatchTeamLogo(row, 'A')" class="team-logo-badge-wrap">
-                  <img
-                    class="team-logo-badge"
-                    :src="resolveMatchTeamLogo(row, 'A')"
-                    alt=""
-                    loading="lazy"
-                    @error="handleImageError"
-                  />
-                </span>
-                <span class="team-name-text">{{ row.teamA || '-' }}</span>
-              </span>
-              <span class="schedule-score-text">
+          <div class="schedule-day-title">{{ group.date }} · {{ group.rows.length }} 场比赛</div>
+          <div class="schedule-match-list">
+            <button
+              v-for="row in group.rows"
+              :key="row.matchId || `${resolveMatchDateText(row)}-${row.tournament}-${row.teamA}-${row.teamB}-${row.matchTime || ''}`"
+              type="button"
+              class="schedule-match-card"
+              :class="[
+                `tone-${scheduleCardTone(row)}`,
+                {
+                  'schedule-match-card--weak': isTbdTeamName(row.teamA) || isTbdTeamName(row.teamB),
+                  'schedule-match-card--high': ['S', 'S+', 'MAJOR'].some((tier) => scheduleTierLabel(row).toUpperCase().includes(tier)),
+                },
+              ]"
+              @click="$emit('open-match', row)"
+            >
+              <div class="schedule-card-meta">
+                <span class="schedule-tier-badge">{{ scheduleTierLabel(row) }}</span>
+                <strong>{{ row.tournament || '-' }}</strong>
+                <span class="schedule-stage-chip">{{ row.stage || '-' }}</span>
+                <span class="schedule-time-chip">{{ resolveMatchKickoffTime(row) }}</span>
+                <span class="schedule-status-chip" :class="`tone-${scheduleCardTone(row)}`">{{ resolveScheduleStatusText(row) }}</span>
+              </div>
+
+              <div class="schedule-card-matchup">
                 <span
+                  class="schedule-team-panel"
                   :class="{
-                    'schedule-score-winner': isResultWinner(row, 'A'),
-                    'schedule-score-loser': isResultLoser(row, 'A'),
+                    'schedule-team-panel--tbd': isTbdTeamName(row.teamA),
+                    'schedule-side-winner': isResultWinner(row, 'A'),
+                    'schedule-side-loser': isResultLoser(row, 'A'),
                   }"
                 >
-                  {{ resolveScheduleScorePart(row, 'A') }}
+                  <span v-if="resolveMatchTeamLogo(row, 'A')" class="schedule-team-logo-wrap">
+                    <img class="schedule-team-logo" :src="resolveMatchTeamLogo(row, 'A')" alt="" loading="lazy" @error="handleImageError" />
+                  </span>
+                  <b v-else class="schedule-team-fallback">{{ String(row.teamA || '-').slice(0, 1) }}</b>
+                  <strong>{{ row.teamA || '-' }}</strong>
                 </span>
-                <span class="schedule-score-sep">:</span>
+
+                <span class="schedule-card-center">
+                  <b>
+                    <span :class="{ 'schedule-score-winner': isResultWinner(row, 'A'), 'schedule-score-loser': isResultLoser(row, 'A') }">{{ resolveScheduleScorePart(row, 'A') }}</span>
+                    <i>:</i>
+                    <span :class="{ 'schedule-score-winner': isResultWinner(row, 'B'), 'schedule-score-loser': isResultLoser(row, 'B') }">{{ resolveScheduleScorePart(row, 'B') }}</span>
+                  </b>
+                  <small>{{ resolveScheduleStatusText(row) === '未开赛' ? 'VS' : resolveMatchKickoffTime(row) }}</small>
+                </span>
+
                 <span
+                  class="schedule-team-panel schedule-team-panel-b"
                   :class="{
-                    'schedule-score-winner': isResultWinner(row, 'B'),
-                    'schedule-score-loser': isResultLoser(row, 'B'),
+                    'schedule-team-panel--tbd': isTbdTeamName(row.teamB),
+                    'schedule-side-winner': isResultWinner(row, 'B'),
+                    'schedule-side-loser': isResultLoser(row, 'B'),
                   }"
                 >
-                  {{ resolveScheduleScorePart(row, 'B') }}
+                  <span v-if="resolveMatchTeamLogo(row, 'B')" class="schedule-team-logo-wrap">
+                    <img class="schedule-team-logo" :src="resolveMatchTeamLogo(row, 'B')" alt="" loading="lazy" @error="handleImageError" />
+                  </span>
+                  <b v-else class="schedule-team-fallback">{{ String(row.teamB || '-').slice(0, 1) }}</b>
+                  <strong>{{ row.teamB || '-' }}</strong>
                 </span>
-              </span>
-              <span
-                class="team-with-logo schedule-team-side-b"
-                :class="{
-                  'schedule-side-winner': isResultWinner(row, 'B'),
-                  'schedule-side-loser': isResultLoser(row, 'B'),
-                }"
-              >
-                <span class="team-name-text">{{ row.teamB || '-' }}</span>
-                <span v-if="resolveMatchTeamLogo(row, 'B')" class="team-logo-badge-wrap">
-                  <img
-                    class="team-logo-badge"
-                    :src="resolveMatchTeamLogo(row, 'B')"
-                    alt=""
-                    loading="lazy"
-                    @error="handleImageError"
-                  />
-                </span>
-              </span>
-            </span>
-            <span>{{ resolveMatchKickoffTime(row) }}</span>
-            <span class="schedule-stage-cell" :title="row.stage || '-'">
-              <span class="schedule-stage-text">{{ row.stage || '-' }}</span>
-            </span>
-            <span>{{ resolveScheduleStatusText(row) }}</span>
+              </div>
+
+              <div v-if="resolveSchedulePrediction(row).available" class="schedule-prediction" :style="predictionBarStyle(resolveSchedulePrediction(row))">
+                <div class="schedule-prediction-topline">
+                  <span>预测胜率</span>
+                  <b>{{ resolveSchedulePrediction(row).teamAProbability }}% · {{ resolveSchedulePrediction(row).teamBProbability }}%</b>
+                  <small>置信度 {{ resolveSchedulePrediction(row).confidence }}</small>
+                </div>
+                <div class="schedule-prediction-bar"><i></i></div>
+                <div class="schedule-prediction-teams">
+                  <span>{{ row.teamA || '-' }}</span>
+                  <span>{{ row.teamB || '-' }}</span>
+                </div>
+              </div>
+              <div v-else class="schedule-prediction schedule-prediction-muted">
+                <span>{{ resolveSchedulePrediction(row).label }}</span>
+                <small>{{ resolveSchedulePrediction(row).reason }}</small>
+              </div>
+            </button>
           </div>
         </div>
       </template>

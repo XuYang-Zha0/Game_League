@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import os
 import re
 import time
@@ -1077,6 +1078,326 @@ def collect_event_log_aggregates(event_log_data: Any) -> Tuple[Optional[int], Op
         if isinstance(item, dict) and normalize_text(item.get("map_name"))
     }
     return len(event_list), len(map_names), normalize_text(event_log_data.get("to_ver"))
+
+
+ROUND_EVENT_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS match_result_round_events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    match_id VARCHAR(50) NOT NULL,
+    event_id VARCHAR(50),
+    event_name VARCHAR(255),
+    bout_id VARCHAR(80),
+    map_index INT,
+    map_name VARCHAR(100),
+    source_map_name VARCHAR(100),
+    round_number INT,
+    round_global_index INT,
+    event_type VARCHAR(32),
+    event_type_code VARCHAR(16),
+    update_version VARCHAR(64),
+    source_order INT,
+    team_side VARCHAR(32),
+    team_name VARCHAR(100),
+    player_id VARCHAR(50),
+    player_name VARCHAR(100),
+    related_player_id VARCHAR(50),
+    related_player_name VARCHAR(100),
+    weapon VARCHAR(100),
+    weapon_logo VARCHAR(255),
+    bomb_site VARCHAR(16),
+    winner_side VARCHAR(32),
+    win_type VARCHAR(64),
+    score_ct INT,
+    score_t INT,
+    event_text VARCHAR(500),
+    raw_event JSON,
+    fetched_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_match_update_source (match_id, update_version, source_order),
+    KEY idx_match_map_round (match_id, map_index, round_number),
+    KEY idx_match_event_type (match_id, event_type),
+    KEY idx_player_id (player_id),
+    KEY idx_related_player_id (related_player_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+"""
+
+EVENT_TYPE_NAMES_ROUND = {
+    "1": "round_start",
+    "2": "round_end",
+    "3": "player_join",
+    "4": "player_quit",
+    "6": "bomb_planted",
+    "8": "kill",
+    "10": "match_started",
+}
+
+ROUND_EVENT_COLUMNS = [
+    "match_id", "event_id", "event_name", "bout_id", "map_index", "map_name",
+    "source_map_name", "round_number", "round_global_index", "event_type",
+    "event_type_code", "update_version", "source_order", "team_side", "team_name",
+    "player_id", "player_name", "related_player_id", "related_player_name",
+    "weapon", "weapon_logo", "bomb_site", "winner_side", "win_type",
+    "score_ct", "score_t", "event_text", "raw_event", "fetched_at",
+]
+
+
+def _parse_log_info(item: Dict[str, Any]) -> Dict[str, Any]:
+    raw = item.get("log_info")
+    if isinstance(raw, dict):
+        return raw
+    try:
+        payload = json.loads(raw or "{}")
+    except (TypeError, ValueError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _normalize_map_name(value: Any) -> str:
+    text = normalize_text(value)
+    if text.lower().startswith("de_"):
+        text = text[3:]
+    return text[:1].upper() + text[1:] if text else ""
+
+
+def _int_update_version(item: Dict[str, Any]) -> int:
+    value = normalize_text(item.get("update_version"))
+    try:
+        return int(value)
+    except ValueError:
+        return 0
+
+
+def _parse_round_event_rows(
+    match_id: str,
+    event_id: str,
+    event_name: str,
+    event_items: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    fetched_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sorted_items = sorted(
+        enumerate(event_items),
+        key=lambda pair: (to_int(pair[1].get("bout_num")) or 0, _int_update_version(pair[1]), pair[0]),
+    )
+    current_round_by_map: Dict[int, Optional[int]] = {}
+    max_round_by_map: Dict[int, int] = {}
+    round_global_lookup: Dict[Tuple[int, int], int] = {}
+    rows: List[Dict[str, Any]] = []
+
+    for source_order, item in sorted_items:
+        if not isinstance(item, dict):
+            continue
+        info = _parse_log_info(item)
+        event_type_code = normalize_text(info.get("type"))
+        event_type = EVENT_TYPE_NAMES_ROUND.get(event_type_code, f"type_{event_type_code}" if event_type_code else "unknown")
+        map_index = to_int(item.get("bout_num")) or to_int(info.get("round_start", {}).get("bout_num"))
+        source_map_name = normalize_text(item.get("map_name")) or normalize_text(info.get("round_start", {}).get("map"))
+        map_name = _normalize_map_name(source_map_name)
+
+        round_start = info.get("round_start") if isinstance(info.get("round_start"), dict) else {}
+        round_end = info.get("round_end") if isinstance(info.get("round_end"), dict) else {}
+        kill = info.get("kill") if isinstance(info.get("kill"), dict) else {}
+        bomb_planted = info.get("bomb_planted") if isinstance(info.get("bomb_planted"), dict) else {}
+        bomb_defused = info.get("bomb_defused") if isinstance(info.get("bomb_defused"), dict) else {}
+        player_join = info.get("player_join") if isinstance(info.get("player_join"), dict) else {}
+        player_quit = info.get("player_quit") if isinstance(info.get("player_quit"), dict) else {}
+        assist = info.get("assist") if isinstance(info.get("assist"), dict) else {}
+        match_started = info.get("match_started") if isinstance(info.get("match_started"), dict) else {}
+        suicide = info.get("suicide") if isinstance(info.get("suicide"), dict) else {}
+
+        if not map_name:
+            map_name = _normalize_map_name(match_started.get("map_name"))
+
+        round_number = to_int(round_start.get("round_num"))
+        if round_number is not None and map_index is not None:
+            known_max = max_round_by_map.get(map_index, 0)
+            if event_type == "round_start" and round_number <= known_max:
+                round_number = known_max + 1
+            current_round_by_map[map_index] = round_number
+            max_round_by_map[map_index] = max(known_max, round_number)
+        elif map_index is not None:
+            round_number = current_round_by_map.get(map_index)
+
+        score_ct = to_int(round_end.get("ct_score"))
+        score_t = to_int(round_end.get("t_score"))
+        if event_type == "round_end" and map_index is not None:
+            score_round = (score_ct or 0) + (score_t or 0) if score_ct is not None or score_t is not None else None
+            if score_round:
+                round_number = score_round
+            elif round_number is None:
+                inferred = max_round_by_map.get(map_index)
+                round_number = inferred or None
+            if round_number is not None:
+                current_round_by_map[map_index] = round_number
+                max_round_by_map[map_index] = max(max_round_by_map.get(map_index, 0), round_number)
+
+        if map_index is not None and round_number is not None:
+            round_global_lookup.setdefault((map_index, round_number), len(round_global_lookup) + 1)
+        round_global_index = round_global_lookup.get((map_index, round_number)) if map_index is not None and round_number is not None else None
+
+        player_id = ""
+        player_name = ""
+        related_player_id = ""
+        related_player_name = ""
+        team_side = ""
+        weapon = ""
+        weapon_logo = ""
+        bomb_site = ""
+        team_name = ""
+        event_text = event_type
+
+        if event_type == "kill":
+            player_id = normalize_text(kill.get("killer_id"))
+            player_name = normalize_text(kill.get("killer_nick")) or normalize_text(kill.get("killer_name"))
+            related_player_id = normalize_text(kill.get("victim_id"))
+            related_player_name = normalize_text(kill.get("victim_nick")) or normalize_text(kill.get("victim_name"))
+            team_side = normalize_text(kill.get("killer_side"))
+            weapon = normalize_text(kill.get("weapon"))
+            weapon_logo = normalize_text(kill.get("weapon_logo"))
+            event_text = f"{player_name or '-'} 击杀 {related_player_name or '-'}"
+        elif event_type == "bomb_planted":
+            player_name = normalize_text(bomb_planted.get("player_nick")) or normalize_text(bomb_planted.get("player_name"))
+            bomb_site = normalize_text(bomb_planted.get("bomb_site"))
+            event_text = f"{player_name or '-'} 安放炸弹 {bomb_site or ''}".strip()
+        elif event_type == "round_end":
+            team_side = normalize_text(round_end.get("winner"))
+            event_text = f"回合结束 {score_ct if score_ct is not None else '-'}:{score_t if score_t is not None else '-'} {normalize_text(round_end.get('win_type'))}"
+        elif event_type == "round_start":
+            event_text = f"第 {round_number or '-'} 回合开始"
+        elif event_type == "player_join":
+            player_name = normalize_text(player_join.get("player_nick")) or normalize_text(player_join.get("player_name"))
+            event_text = f"{player_name or '-'} 加入比赛"
+        elif event_type == "player_quit":
+            player_name = normalize_text(player_quit.get("player_nick")) or normalize_text(player_quit.get("player_name"))
+            team_side = normalize_text(player_quit.get("player_side"))
+            event_text = f"{player_name or '-'} 离开比赛"
+        elif event_type == "match_started":
+            event_text = "地图开始"
+        elif normalize_text(bomb_defused.get("player_name")):
+            player_name = normalize_text(bomb_defused.get("player_nick")) or normalize_text(bomb_defused.get("player_name"))
+            event_text = f"{player_name} 拆除炸弹"
+        elif normalize_text(suicide.get("player_name")):
+            player_name = normalize_text(suicide.get("player_nick")) or normalize_text(suicide.get("player_name"))
+            team_side = normalize_text(suicide.get("side"))
+            weapon = normalize_text(suicide.get("weapon"))
+            weapon_logo = normalize_text(suicide.get("weapon_logo"))
+            event_text = f"{player_name} 自杀"
+
+        if not related_player_name and normalize_text(assist.get("assister_name")):
+            related_player_name = normalize_text(assist.get("assister_nick")) or normalize_text(assist.get("assister_name"))
+
+        rows.append({
+            "match_id": match_id,
+            "event_id": event_id,
+            "event_name": event_name,
+            "bout_id": normalize_text(item.get("bout_id")),
+            "map_index": map_index,
+            "map_name": map_name,
+            "source_map_name": source_map_name,
+            "round_number": round_number,
+            "round_global_index": round_global_index,
+            "event_type": event_type,
+            "event_type_code": event_type_code,
+            "update_version": normalize_text(item.get("update_version")),
+            "source_order": source_order,
+            "team_side": team_side,
+            "team_name": team_name,
+            "player_id": player_id,
+            "player_name": player_name,
+            "related_player_id": related_player_id,
+            "related_player_name": related_player_name,
+            "weapon": weapon,
+            "weapon_logo": weapon_logo,
+            "bomb_site": bomb_site,
+            "winner_side": normalize_text(round_end.get("winner")),
+            "win_type": normalize_text(round_end.get("win_type")),
+            "score_ct": score_ct,
+            "score_t": score_t,
+            "event_text": event_text,
+            "raw_event": json.dumps({"source": item, "log_info": info}, ensure_ascii=False, separators=(",", ":")),
+            "fetched_at": fetched_at,
+        })
+
+    return rows
+
+
+def should_scrape_round_events(event_name: str, match_id: str, db_config: Dict[str, Any]) -> bool:
+    if not event_name and not match_id:
+        return False
+    try:
+        conn = pymysql.connect(**db_config)
+        with conn.cursor() as cur:
+            # DB_CONFIG uses DictCursor, so rows are dicts
+            cur.execute(
+                "SELECT COUNT(*) AS cnt FROM information_schema.tables "
+                "WHERE table_schema = DATABASE() AND table_name = 'round_event_scrape_config'"
+            )
+            if cur.fetchone()["cnt"] == 0:
+                return False
+            cur.execute(
+                "SELECT COUNT(*) AS cnt FROM round_event_scrape_config WHERE enabled = 1 AND ("
+                "  (target_type = 'tournament' AND %s LIKE target_value)"
+                "  OR (target_type = 'match' AND target_value = %s)"
+                ")",
+                (event_name or "", match_id or ""),
+            )
+            return cur.fetchone()["cnt"] > 0
+    except Exception:
+        return False
+
+
+def import_round_events_for_match(
+    match_id: str,
+    event_name: str,
+    db_config: Dict[str, Any],
+) -> int:
+    if not should_scrape_round_events(event_name, match_id, db_config):
+        return 0
+
+    url = EVENT_LOG_URL.format(match_id=match_id).replace("limit=500", "limit=2000")
+    resp = fetch_json(url)
+    if not resp.get("success"):
+        return 0
+    data = resp.get("data")
+    if not isinstance(data, dict):
+        return 0
+    items = data.get("list")
+    if not isinstance(items, list):
+        return 0
+    items = [item for item in items if isinstance(item, dict)]
+    if not items:
+        return 0
+
+    event_id = ""
+    try:
+        conn = pymysql.connect(**db_config)
+        with conn.cursor() as cur:
+            cur.execute("SELECT event_id FROM match_result WHERE match_id = %s", (match_id,))
+            row = cur.fetchone()
+            if row:
+                event_id = normalize_text(row.get("event_id") or "")
+        conn.close()
+    except Exception:
+        pass
+
+    rows = _parse_round_event_rows(match_id, event_id, event_name, items)
+    if not rows:
+        return 0
+
+    try:
+        conn = pymysql.connect(**db_config)
+        with conn.cursor() as cur:
+            cur.execute(ROUND_EVENT_TABLE_SQL)
+            placeholders = ", ".join(["%s"] * len(ROUND_EVENT_COLUMNS))
+            cur.execute("DELETE FROM match_result_round_events WHERE match_id = %s", (match_id,))
+            cur.executemany(
+                f"INSERT INTO match_result_round_events ({', '.join(ROUND_EVENT_COLUMNS)}) VALUES ({placeholders})",
+                [[row.get(col) for col in ROUND_EVENT_COLUMNS] for row in rows],
+            )
+        conn.close()
+        return len(rows)
+    except Exception:
+        return 0
 
 
 def build_rows_for_match(

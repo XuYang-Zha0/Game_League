@@ -20,7 +20,6 @@ from counter_strike.cs_api_server import (
     stop_live_sync_worker,
 )
 from ai_assistant import router as ai_router
-from lol.lol_api_server import router as lol_router
 from valorant.valorant_api_server import router as valorant_router
 
 
@@ -59,7 +58,6 @@ def health() -> Dict[str, Any]:
 
 
 app.include_router(cs2_router)
-app.include_router(lol_router)
 app.include_router(valorant_router)
 app.include_router(ai_router)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import threading
@@ -12,6 +13,7 @@ import requests
 from fastapi import APIRouter, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from requests.adapters import HTTPAdapter
+from urllib.parse import quote
 from urllib3.util.retry import Retry
 
 
@@ -87,6 +89,278 @@ LIVE_SYNC_STOP_EVENT = threading.Event()
 LIVE_SYNC_THREAD: Optional[threading.Thread] = None
 LIVE_SYNC_LOCK = threading.Lock()
 LIVE_SYNC_LAST_TRIGGER_TS = 0.0
+BILIBILI_LIVE_CONFIG_TEXT = os.getenv("CS_BILIBILI_LIVE_CONFIG", "").strip()
+BILIBILI_REPLAY_CONFIG_TEXT = os.getenv("CS_BILIBILI_REPLAY_CONFIG", "").strip()
+BILIBILI_OFFICIAL_VIDEO_INDEX_TEXT = os.getenv("CS_BILIBILI_OFFICIAL_VIDEO_INDEX", "").strip()
+BILIBILI_REPLAY_UPLOADER_UID = str(os.getenv("CS_BILIBILI_REPLAY_UPLOADER_UID", "474595627") or "474595627").strip() or "474595627"
+BILIBILI_REPLAY_UPLOADER_NAME = str(os.getenv("CS_BILIBILI_REPLAY_UPLOADER_NAME", "CSGO官方赛事") or "CSGO官方赛事").strip() or "CSGO官方赛事"
+BILIBILI_REPLAY_SUPPORTED_TOURNAMENTS = {
+    "pgl 阿斯塔纳 2026",
+    "pgl astana 2026",
+    "iem 亚特兰大 2026",
+    "iem atlanta 2026",
+}
+BILIBILI_REPLAY_SEARCH_BASE_URL = "https://search.bilibili.com/all?keyword="
+BILIBILI_REPLAY_UPLOADER_URL = f"https://space.bilibili.com/{BILIBILI_REPLAY_UPLOADER_UID}/video"
+BILIBILI_REPLAY_PROVIDER_URL = "https://www.bilibili.com"
+BILIBILI_REPLAY_EMBED_BASE_URL = "https://player.bilibili.com/player.html?bvid={bvid}&page=1&as_wide=1&high_quality=1&danmaku=0"
+BILIBILI_REPLAY_PAGE_EMBED_BASE_URL = "https://www.bilibili.com/blackboard/html5mobileplayer.html?bvid={bvid}"
+BILIBILI_REPLAY_CANDIDATE_LIMIT = max(1, int(os.getenv("CS_BILIBILI_REPLAY_CANDIDATE_LIMIT", "3")))
+BILIBILI_REPLAY_MATCH_THRESHOLD = max(1, int(os.getenv("CS_BILIBILI_REPLAY_MATCH_THRESHOLD", "11")))
+DEFAULT_BILIBILI_OFFICIAL_VIDEO_INDEX = [
+    {
+        "title": "【2026PGL阿斯塔纳】FURIA vs Spirit  5月11日 瑞士轮",
+        "bvid": "BV1Zz5A6VE3W",
+        "publishedAt": "2026-05-12",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38266800252", "bvid": "BV1Zz5A6VE3W", "videoUrl": "https://www.bilibili.com/video/BV1Zz5A6VE3W/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38266801426", "bvid": "BV1Zz5A6VE3W", "videoUrl": "https://www.bilibili.com/video/BV1Zz5A6VE3W/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38266802061", "bvid": "BV1Zz5A6VE3W", "videoUrl": "https://www.bilibili.com/video/BV1Zz5A6VE3W/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】The Huns vs Fisher College  5月11日 瑞士轮",
+        "bvid": "BV1kY5t6sEB4",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38265031315", "bvid": "BV1kY5t6sEB4", "videoUrl": "https://www.bilibili.com/video/BV1kY5t6sEB4/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38265032297", "bvid": "BV1kY5t6sEB4", "videoUrl": "https://www.bilibili.com/video/BV1kY5t6sEB4/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】K27 vs MAGIC  5月11日 瑞士轮",
+        "bvid": "BV1He5t69EDm",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264965529", "bvid": "BV1He5t69EDm", "videoUrl": "https://www.bilibili.com/video/BV1He5t69EDm/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38265028940", "bvid": "BV1He5t69EDm", "videoUrl": "https://www.bilibili.com/video/BV1He5t69EDm/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】MOUZ vs 9z  5月11日 瑞士轮",
+        "bvid": "BV1zk5t6EEcf",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264898727", "bvid": "BV1zk5t6EEcf", "videoUrl": "https://www.bilibili.com/video/BV1zk5t6EEcf/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38264900262", "bvid": "BV1zk5t6EEcf", "videoUrl": "https://www.bilibili.com/video/BV1zk5t6EEcf/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38264963301", "bvid": "BV1zk5t6EEcf", "videoUrl": "https://www.bilibili.com/video/BV1zk5t6EEcf/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Mongolz vs G2  5月11日 瑞士轮",
+        "bvid": "BV17C5t6mEho",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264832912", "bvid": "BV17C5t6mEho", "videoUrl": "https://www.bilibili.com/video/BV17C5t6mEho/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38264834748", "bvid": "BV17C5t6mEho", "videoUrl": "https://www.bilibili.com/video/BV17C5t6mEho/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Falcons vs Monte  5月11日 瑞士轮",
+        "bvid": "BV1Jz5t6nE2Q",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264704573", "bvid": "BV1Jz5t6nE2Q", "videoUrl": "https://www.bilibili.com/video/BV1Jz5t6nE2Q/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38264767548", "bvid": "BV1Jz5t6nE2Q", "videoUrl": "https://www.bilibili.com/video/BV1Jz5t6nE2Q/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Heroic vs Gentle Mates  5月11日 瑞士轮",
+        "bvid": "BV1Fz5t6HEJw",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264701438", "bvid": "BV1Fz5t6HEJw", "videoUrl": "https://www.bilibili.com/video/BV1Fz5t6HEJw/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38264702170", "bvid": "BV1Fz5t6HEJw", "videoUrl": "https://www.bilibili.com/video/BV1Fz5t6HEJw/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】PV vs Aurora  5月11日 瑞士轮",
+        "bvid": "BV1z65t6SEha",
+        "publishedAt": "2026-05-11",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38264637292", "bvid": "BV1z65t6SEha", "videoUrl": "https://www.bilibili.com/video/BV1z65t6SEha/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38264638120", "bvid": "BV1z65t6SEha", "videoUrl": "https://www.bilibili.com/video/BV1z65t6SEha/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Falcons vs 9z  5月10日 瑞士轮",
+        "bvid": "BV17t5J6dEqF",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38242551548", "bvid": "BV17t5J6dEqF", "videoUrl": "https://www.bilibili.com/video/BV17t5J6dEqF/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38242552809", "bvid": "BV17t5J6dEqF", "videoUrl": "https://www.bilibili.com/video/BV17t5J6dEqF/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38243403767", "bvid": "BV17t5J6dEqF", "videoUrl": "https://www.bilibili.com/video/BV17t5J6dEqF/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Monte vs MAGIC  5月10日 瑞士轮",
+        "bvid": "BV1NX5J6zEDa",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241962594", "bvid": "BV1NX5J6zEDa", "videoUrl": "https://www.bilibili.com/video/BV1NX5J6zEDa/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241963875", "bvid": "BV1NX5J6zEDa", "videoUrl": "https://www.bilibili.com/video/BV1NX5J6zEDa/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】PV vs Fisher College  5月10日 瑞士轮",
+        "bvid": "BV1NR5J6MEtE",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241897498", "bvid": "BV1NR5J6MEtE", "videoUrl": "https://www.bilibili.com/video/BV1NR5J6MEtE/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241960261", "bvid": "BV1NR5J6MEtE", "videoUrl": "https://www.bilibili.com/video/BV1NR5J6MEtE/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】FURIA vs Heroic  5月10日 瑞士轮",
+        "bvid": "BV1Vq5J6SEnR",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241832899", "bvid": "BV1Vq5J6SEnR", "videoUrl": "https://www.bilibili.com/video/BV1Vq5J6SEnR/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241895654", "bvid": "BV1Vq5J6SEnR", "videoUrl": "https://www.bilibili.com/video/BV1Vq5J6SEnR/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Aurora vs The Huns  5月10日 瑞士轮",
+        "bvid": "BV1Yq5J6SELF",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241829557", "bvid": "BV1Yq5J6SELF", "videoUrl": "https://www.bilibili.com/video/BV1Yq5J6SELF/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241830741", "bvid": "BV1Yq5J6SELF", "videoUrl": "https://www.bilibili.com/video/BV1Yq5J6SELF/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Mongolz vs Spirit  5月10日 瑞士轮",
+        "bvid": "BV1Yz5J6EELk",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241763850", "bvid": "BV1Yz5J6EELk", "videoUrl": "https://www.bilibili.com/video/BV1Yz5J6EELk/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241765818", "bvid": "BV1Yz5J6EELk", "videoUrl": "https://www.bilibili.com/video/BV1Yz5J6EELk/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】K27 vs Gentle Mates  5月10日 瑞士轮",
+        "bvid": "BV1Re5J6SEcV",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241634815", "bvid": "BV1Re5J6SEcV", "videoUrl": "https://www.bilibili.com/video/BV1Re5J6SEcV/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241698244", "bvid": "BV1Re5J6SEcV", "videoUrl": "https://www.bilibili.com/video/BV1Re5J6SEcV/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38241699257", "bvid": "BV1Re5J6SEcV", "videoUrl": "https://www.bilibili.com/video/BV1Re5J6SEcV/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】MOUZ vs G2  5月10日 瑞士轮",
+        "bvid": "BV1Vi5J6nEeM",
+        "publishedAt": "2026-05-10",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38241439261", "bvid": "BV1Vi5J6nEeM", "videoUrl": "https://www.bilibili.com/video/BV1Vi5J6nEeM/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38241501917", "bvid": "BV1Vi5J6nEeM", "videoUrl": "https://www.bilibili.com/video/BV1Vi5J6nEeM/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38241567010", "bvid": "BV1Vi5J6nEeM", "videoUrl": "https://www.bilibili.com/video/BV1Vi5J6nEeM/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】FURIA vs Monte  5月9日 瑞士轮",
+        "bvid": "BV1g6RXBMEKA",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38218173907", "bvid": "BV1g6RXBMEKA", "videoUrl": "https://www.bilibili.com/video/BV1g6RXBMEKA/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38218433899", "bvid": "BV1g6RXBMEKA", "videoUrl": "https://www.bilibili.com/video/BV1g6RXBMEKA/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】PV vs 9z  5月9日 瑞士轮",
+        "bvid": "BV1KmRXBYE6p",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38218107675", "bvid": "BV1KmRXBYE6p", "videoUrl": "https://www.bilibili.com/video/BV1KmRXBYE6p/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38218170489", "bvid": "BV1KmRXBYE6p", "videoUrl": "https://www.bilibili.com/video/BV1KmRXBYE6p/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Spirit vs The Huns  5月9日 瑞士轮",
+        "bvid": "BV14mRXBYE32",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38218041362", "bvid": "BV14mRXBYE32", "videoUrl": "https://www.bilibili.com/video/BV14mRXBYE32/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38218043046", "bvid": "BV14mRXBYE32", "videoUrl": "https://www.bilibili.com/video/BV14mRXBYE32/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Falcons vs K27  5月9日 瑞士轮",
+        "bvid": "BV1xSRXBwE6n",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38217975536", "bvid": "BV1xSRXBwE6n", "videoUrl": "https://www.bilibili.com/video/BV1xSRXBwE6n/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38217977804", "bvid": "BV1xSRXBwE6n", "videoUrl": "https://www.bilibili.com/video/BV1xSRXBwE6n/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Mongolz vs MAGIC  5月9日 瑞士轮",
+        "bvid": "BV1MyRXBvEgX",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38217910541", "bvid": "BV1MyRXBvEgX", "videoUrl": "https://www.bilibili.com/video/BV1MyRXBvEgX/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38217974028", "bvid": "BV1MyRXBvEgX", "videoUrl": "https://www.bilibili.com/video/BV1MyRXBvEgX/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】MOUZ vs Gentle Mates  5月9日 瑞士轮",
+        "bvid": "BV1tyRXBvEqK",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38217781047", "bvid": "BV1tyRXBvEqK", "videoUrl": "https://www.bilibili.com/video/BV1tyRXBvEqK/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38217844363", "bvid": "BV1tyRXBvEqK", "videoUrl": "https://www.bilibili.com/video/BV1tyRXBvEqK/?p=2"},
+            {"page": 3, "part": "第三局", "cid": "38217846224", "bvid": "BV1tyRXBvEqK", "videoUrl": "https://www.bilibili.com/video/BV1tyRXBvEqK/?p=3"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】Aurora vs Heroic  5月9日 瑞士轮",
+        "bvid": "BV1T2RXBPELL",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38217518486", "bvid": "BV1T2RXBPELL", "videoUrl": "https://www.bilibili.com/video/BV1T2RXBPELL/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38217581463", "bvid": "BV1T2RXBPELL", "videoUrl": "https://www.bilibili.com/video/BV1T2RXBPELL/?p=2"}
+        ],
+    },
+    {
+        "title": "【2026PGL阿斯塔纳】G2 vs Fisher College  5月9日 瑞士轮",
+        "bvid": "BV1m2RXBPEgB",
+        "publishedAt": "2026-05-09",
+        "uploader": "CSGO官方赛事",
+        "episodes": [
+            {"page": 1, "part": "第一局", "cid": "38217714314", "bvid": "BV1m2RXBPEgB", "videoUrl": "https://www.bilibili.com/video/BV1m2RXBPEgB/?p=1"},
+            {"page": 2, "part": "第二局", "cid": "38217715709", "bvid": "BV1m2RXBPEgB", "videoUrl": "https://www.bilibili.com/video/BV1m2RXBPEgB/?p=2"}
+        ],
+    },
+]
+BILIBILI_EVENT_KEYWORD_ALIASES = {
+    "pgl 阿斯塔纳 2026": ["2026pgl阿斯塔纳", "pgl阿斯塔纳", "2026 pgl astana", "pgl astana 2026"],
+    "pgl astana 2026": ["2026pgl阿斯塔纳", "pgl阿斯塔纳", "2026 pgl astana", "pgl astana 2026"],
+    "iem 亚特兰大 2026": ["2026iem亚特兰大", "iem亚特兰大", "2026 iem atlanta", "iem atlanta 2026"],
+    "iem atlanta 2026": ["2026iem亚特兰大", "iem亚特兰大", "2026 iem atlanta", "iem atlanta 2026"],
+}
 
 
 app = FastAPI(title="Game League API", version="0.2.0")
@@ -243,6 +517,75 @@ def is_truthy_flag(value: Any) -> bool:
 
 def clamp_float(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
+
+
+CS2_VALID_POSITION_LABELS = {"步枪手", "狙击手", "指挥", "辅助", "自由人", "突破", "教练"}
+CS2_KNOWN_POSITION_FALLBACKS = {
+    "donk": "步枪手",
+    "zywoo": "狙击手",
+    "m0nesy": "狙击手",
+    "monesy": "狙击手",
+    "w0nderful": "狙击手",
+    "sh1ro": "狙击手",
+    "device": "狙击手",
+    "s1mple": "狙击手",
+    "broky": "狙击手",
+    "torzsi": "狙击手",
+    "syrson": "狙击手",
+    "degster": "狙击手",
+    "hallzerk": "狙击手",
+    "ultimate": "狙击手",
+    "jame": "狙击手",
+    "karrigan": "指挥",
+    "apex": "指挥",
+    "chopper": "指挥",
+    "siuhy": "指挥",
+    "aleksib": "指挥",
+    "boombl4": "指挥",
+    "hooxi": "指挥",
+    "snappi": "指挥",
+    "tabsen": "指挥",
+    "niko": "步枪手",
+    "frozen": "步枪手",
+    "ropz": "自由人",
+    "elige": "步枪手",
+    "jimpphat": "辅助",
+    "xertion": "突破",
+    "b1t": "步枪手",
+    "malbsmd": "突破",
+}
+
+
+def normalize_cs_player_name(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").strip().lower())
+
+
+def normalize_cs_position_label(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or text == "-":
+        return ""
+    for part in re.split(r"[|,/，、\\s]+", text):
+        label = part.strip()
+        if label in CS2_VALID_POSITION_LABELS:
+            return label
+    return text if text in CS2_VALID_POSITION_LABELS else ""
+
+
+def infer_cs_player_role(row: Dict[str, Any], team_position_counts: Optional[Dict[str, int]] = None) -> str:
+    existing = normalize_cs_position_label(row.get("position") or row.get("positions") or row.get("role"))
+    if existing:
+        return existing
+
+    known_role = CS2_KNOWN_POSITION_FALLBACKS.get(normalize_cs_player_name(row.get("player_name") or row.get("name")))
+    if known_role:
+        return known_role
+
+    if team_position_counts:
+        for label in ("狙击手", "指挥", "突破", "自由人", "辅助"):
+            if team_position_counts.get(label, 0) <= 0:
+                return label
+
+    return "步枪手"
 
 
 def infer_cs_impact(
@@ -464,8 +807,10 @@ def build_schedule_row(match: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "bo": mc.get("format"),
         "team1_id": str(t1.get("id") or "").strip() or None,
         "team1": str(t1.get("disp_name") or "").strip() or None,
+        "team1_logo": str(t1.get("logo") or "").strip() or None,
         "team2_id": str(t2.get("id") or "").strip() or None,
         "team2": str(t2.get("disp_name") or "").strip() or None,
+        "team2_logo": str(t2.get("logo") or "").strip() or None,
         "event_id": str(tt.get("id") or "").strip() or None,
         "event_name": str(tt.get("disp_name") or "").strip() or None,
         "event_logo": str(tt.get("logo") or "").strip() or None,
@@ -701,25 +1046,31 @@ def upsert_event_basic(cur: pymysql.cursors.DictCursor, rows: List[Dict[str, Any
 
 
 def upsert_team_basic(cur: pymysql.cursors.DictCursor, rows: List[Dict[str, Any]]) -> int:
-    team_map: Dict[str, str] = {}
+    team_map: Dict[str, Dict[str, Any]] = {}
     for row in rows:
-        for id_key, name_key in (("team1_id", "team1"), ("team2_id", "team2")):
+        for id_key, name_key, logo_key in (("team1_id", "team1", "team1_logo"), ("team2_id", "team2", "team2_logo")):
             team_id = str(row.get(id_key) or "").strip()
             if not team_id:
                 continue
             team_name = str(row.get(name_key) or "").strip() or team_id
-            team_map[team_id] = team_name
+            team_logo = str(row.get(logo_key) or "").strip()
+            item = team_map.setdefault(team_id, {"team_name": team_name, "team_logo": ""})
+            if team_name:
+                item["team_name"] = team_name
+            if team_logo:
+                item["team_logo"] = team_logo
     if not team_map:
         return 0
 
     now = datetime.now()
-    values = [(tid, tname, now) for tid, tname in team_map.items()]
+    values = [(tid, row.get("team_name"), row.get("team_logo"), now) for tid, row in team_map.items()]
     cur.executemany(
         """
-        INSERT INTO team_basic (team_id, team_name, crawl_time)
-        VALUES (%s, %s, %s)
+        INSERT INTO team_basic (team_id, team_name, team_logo, crawl_time)
+        VALUES (%s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             team_name = COALESCE(NULLIF(VALUES(team_name), ''), team_basic.team_name),
+            team_logo = COALESCE(NULLIF(VALUES(team_logo), ''), team_basic.team_logo),
             crawl_time = COALESCE(VALUES(crawl_time), team_basic.crawl_time)
         """,
         values,
@@ -1201,6 +1552,13 @@ def build_players(
             merge_player_row(row, 3)
 
     base_rows = list(base_by_id.values())
+    team_position_counts: Dict[str, Dict[str, int]] = {}
+    for row in base_rows:
+        team_key = str(row.get("team_id") or row.get("team_name") or "").strip()
+        position = normalize_cs_position_label(row.get("position"))
+        if team_key and position:
+            counts = team_position_counts.setdefault(team_key, {})
+            counts[position] = counts.get(position, 0) + 1
 
     def resolve_team_rank(row: Dict[str, Any]) -> int:
         team_id = str(row.get("team_id") or "")
@@ -1275,7 +1633,7 @@ def build_players(
                 "playerId": row.get("player_id") or "",
                 "name": row.get("player_name") or row.get("player_id") or "-",
                 "team": team_name,
-                "role": (str(row.get("position") or "").strip() or "-"),
+                "role": infer_cs_player_role(row, team_position_counts.get(str(row.get("team_id") or row.get("team_name") or "").strip())),
                 "rating": rating_text,
                 "impact": impact_text,
                 "rankScore": round(score_value, 4),
@@ -1296,7 +1654,7 @@ def build_players(
 def classify_tournament(name: str) -> Tuple[str, str]:
     n = (name or "").lower()
     tier = "A"
-    if any(token in n for token in ["blast", "iem", "pgl", "major"]):
+    if any(token in n for token in ["blast", "iem", "pgl", "major", "acl", "亚冠"]):
         tier = "S"
 
     region = "Global"
@@ -1307,6 +1665,632 @@ def classify_tournament(name: str) -> Tuple[str, str]:
     elif any(token in n for token in ["na", "america", "americas"]):
         region = "NA"
     return tier, region
+
+
+def normalize_live_key(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def bilibili_embed_src(room_id: str) -> str:
+    rid = str(room_id or "").strip()
+    if not rid:
+        return ""
+    return f"https://live.bilibili.com/blanc/{rid}?liteVersion=true"
+
+
+def make_bilibili_room(
+    room_id: Any,
+    *,
+    title: str = "",
+    owner_name: str = "",
+    status: str = "unknown",
+    cover: str = "",
+    room_key: str = "",
+    embed_url: str = "",
+    live_id: str = "",
+) -> Dict[str, str]:
+    rid = str(room_id or "").strip()
+    lid = str(live_id or "").strip()
+    return {
+        "key": str(room_key or rid).strip() or rid,
+        "roomId": rid,
+        "liveId": lid,
+        "title": str(title or "").strip(),
+        "ownerName": str(owner_name or "").strip(),
+        "status": str(status or "unknown").strip() or "unknown",
+        "cover": str(cover or "").strip(),
+        "url": f"https://live.bilibili.com/{rid}" if rid else "",
+        "embedUrl": str(embed_url or "").strip() or bilibili_embed_src(rid),
+    }
+
+
+def default_bilibili_rooms() -> List[Dict[str, str]]:
+    return [
+        make_bilibili_room(
+            "35",
+            title="CSGO 官方赛事主舞台",
+            owner_name="CSGO 官方赛事主舞台",
+            status="live",
+            room_key="main_stage",
+            live_id="291913457",
+            embed_url="https://player.bilibili.com/player.html?bvid=&cid=291913457&page=1&as_wide=1&high_quality=1&danmaku=0",
+        ),
+        make_bilibili_room("21", title="CSGO 官方赛事服务台", owner_name="CSGO 官方赛事服务台", status="live", room_key="service_desk"),
+        make_bilibili_room("1883358196", title="CS_Advent", owner_name="CS_Advent", status="live", room_key="cs_advent"),
+        make_bilibili_room("22889518", title="CS2-德云两鬼", owner_name="CS2-德云两鬼", status="live", room_key="deyun_lianggui"),
+    ]
+
+def load_bilibili_live_config() -> Dict[str, Dict[str, Any]]:
+    result: Dict[str, Dict[str, Any]] = {"tournaments": {}, "matches": {}}
+    raw = BILIBILI_LIVE_CONFIG_TEXT
+    if not raw:
+        return result
+    try:
+        payload = json.loads(raw)
+    except Exception:
+        return result
+    if not isinstance(payload, dict):
+        return result
+
+    for section in ("tournaments", "matches"):
+        section_map = payload.get(section)
+        if not isinstance(section_map, dict):
+            continue
+        for key, value in section_map.items():
+            if not isinstance(value, dict):
+                continue
+            rooms_raw = value.get("rooms")
+            rooms: List[Dict[str, str]] = []
+            if isinstance(rooms_raw, list):
+                for idx, room in enumerate(rooms_raw, start=1):
+                    if not isinstance(room, dict):
+                        continue
+                    room_id = str(room.get("roomId") or room.get("room_id") or "").strip()
+                    if not room_id:
+                        continue
+                    rooms.append(
+                        make_bilibili_room(
+                            room_id,
+                            title=str(room.get("title") or "").strip(),
+                            owner_name=str(room.get("ownerName") or room.get("owner_name") or "").strip(),
+                            status=str(room.get("status") or value.get("status") or "unknown").strip() or "unknown",
+                            cover=str(room.get("cover") or "").strip(),
+                            room_key=str(room.get("key") or room.get("roomKey") or f"room_{idx}").strip(),
+                        )
+                    )
+            if not rooms:
+                room_id = str(value.get("roomId") or value.get("room_id") or "").strip()
+                if not room_id:
+                    continue
+                rooms = [
+                    make_bilibili_room(
+                        room_id,
+                        title=str(value.get("title") or "").strip(),
+                        owner_name=str(value.get("ownerName") or value.get("owner_name") or "").strip(),
+                        status=str(value.get("status") or "").strip() or "unknown",
+                        cover=str(value.get("cover") or "").strip(),
+                        room_key=str(value.get("key") or value.get("roomKey") or room_id).strip(),
+                    )
+                ]
+            primary = rooms[0]
+            result[section][normalize_live_key(key)] = {
+                **primary,
+                "rooms": rooms,
+            }
+    return result
+
+
+BILIBILI_LIVE_CONFIG = load_bilibili_live_config()
+BILIBILI_SUPPORTED_TOURNAMENTS = {
+    normalize_live_key("IEM 亚特兰大 2026"),
+    normalize_live_key("IEM Atlanta 2026"),
+    normalize_live_key("PGL 阿斯塔纳 2026"),
+    normalize_live_key("PGL Astana 2026"),
+    normalize_live_key("英雄亚冠ACL")
+}
+
+
+def build_bilibili_live_info(*, tournament_name: str = "", match_id: str = "", tier: str = "") -> Optional[Dict[str, Any]]:
+    if str(tier or "").strip().upper() != "S":
+        return None
+
+    tournament_key = normalize_live_key(tournament_name)
+    supported = tournament_key in BILIBILI_SUPPORTED_TOURNAMENTS
+    if not supported:
+        return None
+
+    match_key = normalize_live_key(match_id)
+    if match_key:
+        match_info = BILIBILI_LIVE_CONFIG["matches"].get(match_key)
+        if match_info:
+            return {
+                "supported": True,
+                "enabled": True,
+                "hasRoom": True,
+                "scope": "match",
+                "provider": "bilibili",
+                **match_info,
+            }
+
+    if tournament_key:
+        tournament_info = BILIBILI_LIVE_CONFIG["tournaments"].get(tournament_key)
+        if tournament_info:
+            return {
+                "supported": True,
+                "enabled": True,
+                "hasRoom": True,
+                "scope": "tournament",
+                "provider": "bilibili",
+                **tournament_info,
+            }
+
+    default_rooms = default_bilibili_rooms()
+    primary = default_rooms[0]
+    return {
+        "supported": True,
+        "enabled": True,
+        "hasRoom": True,
+        "scope": "tournament",
+        "provider": "bilibili",
+        **primary,
+        "rooms": default_rooms,
+    }
+
+
+def normalize_bilibili_official_video_entry(value: Any, *, default_uploader: str = "") -> Optional[Dict[str, Any]]:
+    if not isinstance(value, dict):
+        return None
+    title = str(value.get("title") or "").strip()
+    bvid = str(value.get("bvid") or "").strip()
+    cid = str(value.get("cid") or "").strip()
+    video_url = str(value.get("videoUrl") or value.get("url") or "").strip()
+    if not video_url and bvid:
+        video_url = bilibili_replay_video_url(bvid, 1)
+    if not title and not video_url and not bvid:
+        return None
+    episodes_raw = value.get("episodes")
+    episodes: List[Dict[str, Any]] = []
+    if isinstance(episodes_raw, list):
+        for item in episodes_raw:
+            entry = normalize_bilibili_replay_episode(item, fallback_bvid=bvid, fallback_cid=cid)
+            if entry:
+                episodes.append(entry)
+    episodes.sort(key=lambda row: safe_int(row.get("page"), 0))
+    return {
+        "title": title,
+        "videoUrl": video_url,
+        "bvid": bvid,
+        "cid": cid,
+        "uploader": str(value.get("uploader") or default_uploader or BILIBILI_REPLAY_UPLOADER_NAME).strip() or BILIBILI_REPLAY_UPLOADER_NAME,
+        "publishedAt": str(value.get("publishedAt") or value.get("date") or "").strip(),
+        "cover": str(value.get("cover") or "").strip(),
+        "sourceLabel": str(value.get("sourceLabel") or "B 站官方赛事回放").strip() or "B 站官方赛事回放",
+        "episodes": episodes,
+    }
+
+
+def load_bilibili_replay_config() -> Dict[str, Dict[str, Any]]:
+    result: Dict[str, Dict[str, Any]] = {"matches": {}, "tournaments": {}}
+    raw = BILIBILI_REPLAY_CONFIG_TEXT
+    if not raw:
+        return result
+    try:
+        payload = json.loads(raw)
+    except Exception:
+        return result
+    if not isinstance(payload, dict):
+        return result
+
+    for section in ("matches", "tournaments"):
+        section_map = payload.get(section)
+        if not isinstance(section_map, dict):
+            continue
+        for key, value in section_map.items():
+            entry = normalize_bilibili_official_video_entry(value, default_uploader=BILIBILI_REPLAY_UPLOADER_NAME)
+            if not entry:
+                continue
+            result[section][normalize_live_key(key)] = {
+                "supported": True,
+                "enabled": True,
+                "hasVideo": bool(entry.get("videoUrl") or entry.get("bvid")),
+                "provider": "bilibili",
+                "scope": "match" if section == "matches" else "tournament",
+                **entry,
+                "searchKeyword": str(value.get("searchKeyword") or "").strip(),
+            }
+    return result
+
+
+def load_bilibili_official_video_index() -> List[Dict[str, Any]]:
+    # 优先读取实时同步脚本写入的共享文件 (7 小时内有效)
+    try:
+        _shared_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "scripts", "bilibili_synced_index.json",
+        )
+        if os.path.exists(_shared_path):
+            with open(_shared_path, "r", encoding="utf-8") as _sf:
+                _shared = json.loads(_sf.read())
+            _ts = _shared.get("updated_at", 0)
+            if time.time() - _ts < 7 * 3600:
+                payload: Any = _shared.get("index")
+                if isinstance(payload, list) and payload:
+                    videos: List[Dict[str, Any]] = []
+                    for item in payload:
+                        entry = normalize_bilibili_official_video_entry(item, default_uploader=BILIBILI_REPLAY_UPLOADER_NAME)
+                        if entry:
+                            videos.append(entry)
+                    return videos
+    except Exception:
+        pass
+
+    raw = BILIBILI_OFFICIAL_VIDEO_INDEX_TEXT
+    payload = None
+    if raw:
+        try:
+            payload = json.loads(raw)
+        except Exception:
+            payload = None
+    if not isinstance(payload, list):
+        payload = DEFAULT_BILIBILI_OFFICIAL_VIDEO_INDEX
+    videos = []
+    for item in payload:
+        entry = normalize_bilibili_official_video_entry(item, default_uploader=BILIBILI_REPLAY_UPLOADER_NAME)
+        if entry:
+            videos.append(entry)
+    return videos
+
+
+def bilibili_replay_video_url(bvid: str, page: Any = 1) -> str:
+    video_id = str(bvid or "").strip()
+    if not video_id:
+        return ""
+    page_num = max(1, safe_int(page, 1))
+    return f"https://www.bilibili.com/video/{video_id}/?p={page_num}"
+
+
+def bilibili_replay_embed_url(bvid: str, cid: str = "", page: Any = 1) -> str:
+    video_id = str(bvid or "").strip()
+    if not video_id:
+        return ""
+    page_num = max(1, safe_int(page, 1))
+    cid_text = str(cid or "").strip()
+    if cid_text:
+        return f"https://player.bilibili.com/player.html?bvid={video_id}&cid={cid_text}&page={page_num}&as_wide=1&high_quality=1&danmaku=0"
+    return f"https://player.bilibili.com/player.html?bvid={video_id}&page={page_num}&as_wide=1&high_quality=1&danmaku=0"
+
+
+def bilibili_replay_page_embed_url(bvid: str, page: Any = 1) -> str:
+    video_id = str(bvid or "").strip()
+    if not video_id:
+        return ""
+    page_num = max(1, safe_int(page, 1))
+    return f"{BILIBILI_REPLAY_PAGE_EMBED_BASE_URL.format(bvid=video_id)}&page={page_num}"
+
+
+def normalize_bilibili_replay_episode(value: Any, *, fallback_bvid: str = "", fallback_cid: str = "") -> Optional[Dict[str, Any]]:
+    if not isinstance(value, dict):
+        return None
+    bvid = str(value.get("bvid") or fallback_bvid or "").strip()
+    cid = str(value.get("cid") or fallback_cid or "").strip()
+    page = max(1, safe_int(value.get("page"), 1))
+    part = str(value.get("part") or value.get("title") or "").strip()
+    video_url = str(value.get("videoUrl") or value.get("url") or "").strip()
+    if not video_url and bvid:
+        video_url = bilibili_replay_video_url(bvid, page)
+    label = str(value.get("label") or "").strip()
+    map_index = safe_int(value.get("mapIndex"), 0)
+    map_name = str(value.get("mapName") or "").strip()
+    return {
+        "page": page,
+        "part": part,
+        "cid": cid,
+        "bvid": bvid,
+        "videoUrl": video_url,
+        "embedUrl": str(value.get("embedUrl") or "").strip() or bilibili_replay_embed_url(bvid, cid, page),
+        "pageEmbedUrl": str(value.get("pageEmbedUrl") or "").strip() or bilibili_replay_page_embed_url(bvid, page),
+        "label": label,
+        "mapIndex": map_index,
+        "mapName": map_name,
+    }
+
+
+BILIBILI_REPLAY_CONFIG = load_bilibili_replay_config()
+BILIBILI_OFFICIAL_VIDEO_INDEX = load_bilibili_official_video_index()
+
+
+def refresh_bilibili_official_index() -> List[Dict[str, Any]]:
+    """从 B 站同步最新 CSGO官方赛事 视频索引，同时写入共享文件供其他进程读取"""
+    global BILIBILI_OFFICIAL_VIDEO_INDEX
+    try:
+        _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if _backend_dir not in sys.path:
+            sys.path.insert(0, _backend_dir)
+        from scripts.bilibili_video_sync import sync_videos
+        new_index = sync_videos()
+        if new_index:
+            BILIBILI_OFFICIAL_VIDEO_INDEX = new_index
+            _cache_path = os.path.join(_backend_dir, "scripts", "bilibili_synced_index.json")
+            with open(_cache_path, "w", encoding="utf-8") as _f:
+                json.dump({"updated_at": time.time(), "count": len(new_index), "index": new_index}, _f, ensure_ascii=False)
+    except Exception as exc:
+        print(f"[bilibili-sync] 同步失败: {exc}", flush=True)
+    return BILIBILI_OFFICIAL_VIDEO_INDEX
+
+
+def replay_date_variants(match_date: str) -> List[str]:
+    text = str(match_date or "").strip()
+    if not text:
+        return []
+    variants = [text]
+    try:
+        dt = datetime.strptime(text, "%Y-%m-%d")
+    except ValueError:
+        return variants
+    variants.extend([
+        f"{dt.year}年{dt.month}月{dt.day}日",
+        f"{dt.month}月{dt.day}日",
+        f"{dt.year}/{dt.month}/{dt.day}",
+        f"{dt.year}.{dt.month}.{dt.day}",
+    ])
+    return [item for item in dict.fromkeys(variants) if item]
+
+
+def replay_event_terms(tournament_name: str) -> List[str]:
+    key = normalize_live_key(tournament_name)
+    aliases = BILIBILI_EVENT_KEYWORD_ALIASES.get(key, [])
+    base = [str(tournament_name or "").strip(), *aliases]
+    return [item for item in dict.fromkeys([str(x).strip() for x in base if str(x).strip()])]
+
+
+def replay_search_keyword(tournament_name: str, team_a: str, team_b: str, match_date: str) -> str:
+    event_term = replay_event_terms(tournament_name)[0] if replay_event_terms(tournament_name) else str(tournament_name or "").strip()
+    date_term = replay_date_variants(match_date)[1] if len(replay_date_variants(match_date)) > 1 else str(match_date or "").strip()
+    parts = [event_term, str(team_a or "").strip(), str(team_b or "").strip(), date_term]
+    return " ".join([part for part in parts if part]).strip()
+
+
+def official_video_match_score(video: Dict[str, Any], *, tournament_name: str, team_a: str, team_b: str, match_date: str) -> Tuple[int, List[str]]:
+    haystack = normalize_live_key(video.get("title") or "")
+    score = 0
+    matched_terms: List[str] = []
+
+    for term in replay_event_terms(tournament_name):
+        if normalize_live_key(term) and normalize_live_key(term) in haystack:
+            score += 5
+            matched_terms.append(f"赛事:{term}")
+            break
+
+    team_a_text = str(team_a or "").strip()
+    team_b_text = str(team_b or "").strip()
+    team_a_hit = normalize_live_key(team_a_text) in haystack if team_a_text else False
+    team_b_hit = normalize_live_key(team_b_text) in haystack if team_b_text else False
+    if team_a_hit:
+        score += 4
+        matched_terms.append(f"战队:{team_a_text}")
+    if team_b_hit:
+        score += 4
+        matched_terms.append(f"战队:{team_b_text}")
+    if team_a_hit and team_b_hit:
+        score += 5
+        matched_terms.append("对阵双方")
+
+    for term in replay_date_variants(match_date):
+        if normalize_live_key(term) and normalize_live_key(term) in haystack:
+            score += 3
+            matched_terms.append(f"日期:{term}")
+            break
+
+    published_at = str(video.get("publishedAt") or "").strip()
+    if published_at == str(match_date or "").strip():
+        score += 2
+        matched_terms.append(f"发布日期:{published_at}")
+
+    if str(video.get("uploader") or "").strip() == BILIBILI_REPLAY_UPLOADER_NAME:
+        score += 2
+        matched_terms.append("官方UP")
+
+    return score, matched_terms
+
+
+_SHARED_INDEX_MTIME = 0.0
+
+
+def fetch_bilibili_official_recent_videos() -> List[Dict[str, Any]]:
+    """返回当前有效索引，自动检测共享文件更新"""
+    global BILIBILI_OFFICIAL_VIDEO_INDEX, _SHARED_INDEX_MTIME
+    try:
+        _shared_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "scripts", "bilibili_synced_index.json",
+        )
+        if os.path.exists(_shared_path):
+            _cur_mtime = os.path.getmtime(_shared_path)
+            if _cur_mtime > _SHARED_INDEX_MTIME:
+                with open(_shared_path, "r", encoding="utf-8") as _sf:
+                    _shared = json.loads(_sf.read())
+                _ts = _shared.get("updated_at", 0)
+                if time.time() - _ts < 7 * 3600:
+                    _payload = _shared.get("index")
+                    if isinstance(_payload, list) and _payload:
+                        _videos: List[Dict[str, Any]] = []
+                        for _item in _payload:
+                            _entry = normalize_bilibili_official_video_entry(_item, default_uploader=BILIBILI_REPLAY_UPLOADER_NAME)
+                            if _entry:
+                                _videos.append(_entry)
+                        BILIBILI_OFFICIAL_VIDEO_INDEX = _videos
+                _SHARED_INDEX_MTIME = _cur_mtime
+    except Exception:
+        pass
+    return list(BILIBILI_OFFICIAL_VIDEO_INDEX)
+
+
+def match_bilibili_official_replay(*, tournament_name: str, team_a: str, team_b: str, match_date: str, candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    ranked: List[Dict[str, Any]] = []
+    for item in candidates:
+        if str(item.get("uploader") or "").strip() != BILIBILI_REPLAY_UPLOADER_NAME:
+            continue
+        score, matched_terms = official_video_match_score(item, tournament_name=tournament_name, team_a=team_a, team_b=team_b, match_date=match_date)
+        ranked.append({**item, "matchScore": score, "matchedTerms": matched_terms})
+    if not ranked:
+        return None
+    ranked.sort(key=lambda row: (-safe_int(row.get("matchScore"), 0), str(row.get("publishedAt") or ""), str(row.get("title") or "")))
+    best = ranked[0]
+    if safe_int(best.get("matchScore"), 0) < BILIBILI_REPLAY_MATCH_THRESHOLD:
+        return None
+    return best
+
+
+def replay_episode_fallback_label(page: Any) -> str:
+    page_num = max(1, safe_int(page, 1))
+    return f"第{page_num}局"
+
+
+def attach_replay_episode_maps(episodes: List[Dict[str, Any]], maps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    map_rows = maps if isinstance(maps, list) else []
+    if not episodes:
+        return []
+    enriched: List[Dict[str, Any]] = []
+    for episode in episodes:
+        page = max(1, safe_int(episode.get("page"), 1))
+        map_row = next((row for row in map_rows if safe_int(row.get("index"), 0) == page), None)
+        map_name = str(episode.get("mapName") or "").strip()
+        if not map_name and isinstance(map_row, dict):
+            map_name = str(map_row.get("map") or "").strip()
+        label = str(episode.get("label") or "").strip()
+        if not label:
+            if map_name:
+                label = f"Map {page} · {map_name}"
+            else:
+                label = str(episode.get("part") or "").strip() or replay_episode_fallback_label(page)
+        enriched.append({
+            **episode,
+            "mapIndex": page,
+            "mapName": map_name,
+            "label": label,
+        })
+    return enriched
+
+
+def build_replay_response_payload(info: Dict[str, Any], *, search_keyword: str, official_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
+    payload = dict(info)
+    bvid = str(payload.get("bvid") or "").strip()
+    cid = str(payload.get("cid") or "").strip()
+    video_url = str(payload.get("videoUrl") or "").strip()
+    if not video_url and bvid:
+        video_url = bilibili_replay_video_url(bvid, 1)
+    episodes = attach_replay_episode_maps(list(payload.get("episodes") or []), list(payload.get("maps") or []))
+    default_episode = episodes[0] if episodes else None
+    if default_episode:
+        video_url = str(default_episode.get("videoUrl") or video_url).strip()
+        cid = str(default_episode.get("cid") or cid).strip()
+    embed_url = bilibili_replay_embed_url(bvid, cid, default_episode.get("page") if default_episode else 1)
+    page_embed_url = bilibili_replay_page_embed_url(bvid, default_episode.get("page") if default_episode else 1)
+    return {
+        "supported": True,
+        "enabled": True,
+        "hasVideo": bool(video_url or bvid),
+        "provider": "bilibili",
+        "scope": str(payload.get("scope") or "match").strip() or "match",
+        "title": str(payload.get("title") or "").strip(),
+        "videoUrl": video_url,
+        "bvid": bvid,
+        "cid": cid,
+        "embedUrl": embed_url,
+        "pageEmbedUrl": page_embed_url,
+        "uploader": BILIBILI_REPLAY_UPLOADER_NAME,
+        "cover": str(payload.get("cover") or "").strip(),
+        "publishedAt": str(payload.get("publishedAt") or "").strip(),
+        "sourceLabel": str(payload.get("sourceLabel") or "B 站官方赛事回放").strip() or "B 站官方赛事回放",
+        "uploaderUid": BILIBILI_REPLAY_UPLOADER_UID,
+        "uploaderUrl": BILIBILI_REPLAY_UPLOADER_URL,
+        "providerUrl": BILIBILI_REPLAY_PROVIDER_URL,
+        "searchKeyword": search_keyword,
+        "searchUrl": f"{BILIBILI_REPLAY_SEARCH_BASE_URL}{quote(search_keyword)}" if search_keyword else "",
+        "candidates": [
+            {
+                "title": str(item.get("title") or "").strip(),
+                "publishedAt": str(item.get("publishedAt") or "").strip(),
+                "videoUrl": str(item.get("videoUrl") or "").strip(),
+                "bvid": str(item.get("bvid") or "").strip(),
+            }
+            for item in official_candidates[:BILIBILI_REPLAY_CANDIDATE_LIMIT]
+        ],
+        "matchedTerms": list(payload.get("matchedTerms") or []),
+        "matchScore": safe_int(payload.get("matchScore"), 0),
+        "episodes": episodes,
+        "episodeCount": len(episodes),
+        "defaultEpisode": default_episode,
+    }
+
+
+def build_bilibili_replay_info(*, tournament_name: str = "", match_id: str = "", tier: str = "", team_a: str = "", team_b: str = "", match_date: str = "", maps: Optional[List[Dict[str, Any]]] = None) -> Optional[Dict[str, Any]]:
+    if str(tier or "").strip().upper() != "S":
+        return None
+
+    tournament_key = normalize_live_key(tournament_name)
+    if tournament_key not in {normalize_live_key(name) for name in BILIBILI_REPLAY_SUPPORTED_TOURNAMENTS}:
+        return None
+
+    replay_maps = list(maps or [])
+    match_key = normalize_live_key(match_id)
+    configured = BILIBILI_REPLAY_CONFIG["matches"].get(match_key) if match_key else None
+    search_keyword = replay_search_keyword(tournament_name, team_a, team_b, match_date)
+
+    if configured:
+        info = {**configured, "maps": replay_maps, "matchedTerms": ["手动配置"], "matchScore": 999}
+        return build_replay_response_payload(info, search_keyword=search_keyword, official_candidates=[])
+
+    official_candidates = fetch_bilibili_official_recent_videos()
+    best = match_bilibili_official_replay(
+        tournament_name=tournament_name,
+        team_a=team_a,
+        team_b=team_b,
+        match_date=match_date,
+        candidates=official_candidates,
+    )
+    if best:
+        info = {**best, "scope": "match", "maps": replay_maps}
+        return build_replay_response_payload(info, search_keyword=search_keyword, official_candidates=official_candidates)
+
+    return {
+        "supported": True,
+        "enabled": True,
+        "hasVideo": False,
+        "provider": "bilibili",
+        "scope": "tournament",
+        "title": "",
+        "videoUrl": "",
+        "bvid": "",
+        "cid": "",
+        "embedUrl": "",
+        "pageEmbedUrl": "",
+        "uploader": BILIBILI_REPLAY_UPLOADER_NAME,
+        "cover": "",
+        "publishedAt": "",
+        "sourceLabel": "B 站官方赛事回放",
+        "uploaderUid": BILIBILI_REPLAY_UPLOADER_UID,
+        "uploaderUrl": BILIBILI_REPLAY_UPLOADER_URL,
+        "providerUrl": BILIBILI_REPLAY_PROVIDER_URL,
+        "searchKeyword": search_keyword,
+        "searchUrl": f"{BILIBILI_REPLAY_SEARCH_BASE_URL}{quote(search_keyword)}" if search_keyword else "",
+        "candidates": [
+            {
+                "title": str(item.get("title") or "").strip(),
+                "publishedAt": str(item.get("publishedAt") or "").strip(),
+                "videoUrl": str(item.get("videoUrl") or "").strip(),
+                "bvid": str(item.get("bvid") or "").strip(),
+            }
+            for item in official_candidates[:BILIBILI_REPLAY_CANDIDATE_LIMIT]
+        ],
+        "matchedTerms": [],
+        "matchScore": 0,
+        "episodes": [],
+        "episodeCount": 0,
+        "defaultEpisode": None,
+    }
 
 
 def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
@@ -1320,6 +2304,7 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
         if not isinstance(end_time, datetime):
             end_time = parse_datetime_text(end_time)
         live_count = safe_int(row.get("live_count"))
+        nearby_active_count = safe_int(row.get("nearby_active_count"))
         is_live = live_count > 0 or (
             isinstance(start_time, datetime)
             and isinstance(end_time, datetime)
@@ -1334,6 +2319,14 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
         else:
             status = "未知"
 
+        bilibili_live = build_bilibili_live_info(tournament_name=name, tier=tier)
+        if bilibili_live:
+            streaming_now = nearby_active_count > 0
+            bilibili_live["status"] = "live" if streaming_now else "ready"
+            bilibili_live["isStreamingNow"] = streaming_now
+            for room in (bilibili_live.get("rooms") or []):
+                room["status"] = "live" if streaming_now else "ready"
+
         return {
             "name": name,
             "tier": tier,
@@ -1343,7 +2336,15 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
             "status": status,
             "isLive": is_live,
             "prize": "-",
+            "bilibiliLive": bilibili_live,
         }
+
+    def _tournament_sort_key(t: Dict[str, Any]) -> Tuple[int, int, int, str]:
+        live_info = t.get("bilibiliLive")
+        supported = 1 if (isinstance(live_info, dict) and live_info.get("supported")) else 0
+        streaming = 1 if (isinstance(live_info, dict) and str(live_info.get("status") or "").strip().lower() == "live") else 0
+        tier_order = 0 if str(t.get("tier") or "").strip().upper() == "S" else 1
+        return (-supported, -streaming, tier_order, str(t.get("start") or ""))
 
     cache: Set[str] = set()
     limit_sql = "LIMIT %s" if TOURNAMENT_FETCH_LIMIT > 0 else ""
@@ -1362,6 +2363,7 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
                 MIN(match_time) AS start_time,
                 MAX(match_time) AS end_time,
                 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS live_count,
+                SUM(CASE WHEN status IN (0, 1) AND match_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 HOUR) AND DATE_ADD(NOW(), INTERVAL 1 HOUR) THEN 1 ELSE 0 END) AS nearby_active_count,
                 COUNT(*) AS total_matches
             FROM merged
             WHERE event_id IS NOT NULL AND event_id <> ''
@@ -1373,7 +2375,9 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
         )
         rows = list(cur.fetchall())
         now = datetime.now()
-        return [row_to_tournament(row, now) for row in rows]
+        tournaments = [row_to_tournament(row, now) for row in rows]
+        tournaments.sort(key=_tournament_sort_key)
+        return tournaments
 
     event_cols = table_columns(cur, "event_basic")
     has_event_start = "start_time" in event_cols
@@ -1394,6 +2398,7 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
                 MIN(match_time) AS match_start_time,
                 MAX(match_time) AS match_end_time,
                 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS live_count,
+                SUM(CASE WHEN status IN (0, 1) AND match_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 HOUR) AND DATE_ADD(NOW(), INTERVAL 1 HOUR) THEN 1 ELSE 0 END) AS nearby_active_count,
                 COUNT(*) AS total_matches
             FROM merged
             WHERE event_id IS NOT NULL AND event_id <> ''
@@ -1405,6 +2410,7 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
             COALESCE({event_start_expr}, ms.match_start_time) AS start_time,
             COALESCE({event_end_expr}, ms.match_end_time) AS end_time,
             COALESCE(ms.live_count, 0) AS live_count,
+            COALESCE(ms.nearby_active_count, 0) AS nearby_active_count,
             COALESCE(ms.total_matches, 0) AS total_matches
         FROM event_basic eb
         LEFT JOIN match_stats ms ON ms.event_id = eb.event_id
@@ -1417,6 +2423,7 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
             ms.match_start_time AS start_time,
             ms.match_end_time AS end_time,
             ms.live_count AS live_count,
+            ms.nearby_active_count AS nearby_active_count,
             ms.total_matches AS total_matches
         FROM match_stats ms
         LEFT JOIN event_basic eb ON eb.event_id = ms.event_id
@@ -1429,7 +2436,9 @@ def build_tournaments(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
     )
     rows = list(cur.fetchall())
     now = datetime.now()
-    return [row_to_tournament(row, now) for row in rows]
+    tournaments = [row_to_tournament(row, now) for row in rows]
+    tournaments.sort(key=_tournament_sort_key)
+    return tournaments
 
 def build_match_payload(row: Dict[str, Any]) -> Dict[str, Any]:
     def derive_from_bout_details(note_text: str) -> Tuple[Optional[int], Optional[int]]:
@@ -1489,12 +2498,14 @@ def build_match_payload(row: Dict[str, Any]) -> Dict[str, Any]:
     if len(note) > 100:
         note = note[:97] + "..."
 
+    tier = str(row.get("tier") or "").strip() or "-"
+    event_name = row.get("event_name") or "-"
     return {
         "matchId": str(row.get("match_id") or "").strip(),
         "date": safe_date(row.get("match_time")),
         "matchTime": safe_datetime(row.get("match_time")),
-        "tournament": row.get("event_name") or "-",
-        "tier": str(row.get("tier") or "").strip() or "-",
+        "tournament": event_name,
+        "tier": tier,
         "stage": f"BO{safe_int(row.get('bo'), 0)}" if row.get("bo") is not None else "-",
         "teamA": row.get("team1_name") or row.get("team1") or "-",
         "teamB": row.get("team2_name") or row.get("team2") or "-",
@@ -1504,6 +2515,11 @@ def build_match_payload(row: Dict[str, Any]) -> Dict[str, Any]:
         "winner": winner,
         "statusCode": safe_int(row.get("status"), -1),
         "note": note or "-",
+        "bilibiliLive": build_bilibili_live_info(
+            tournament_name=str(event_name),
+            match_id=str(row.get("match_id") or ""),
+            tier=tier,
+        ),
     }
 
 
@@ -1656,6 +2672,34 @@ def build_matches(cur: pymysql.cursors.DictCursor) -> List[Dict[str, Any]]:
     )
     rows = list(cur.fetchall())
     return [build_match_payload(row) for row in rows]
+
+
+def build_match_totals(cur: pymysql.cursors.DictCursor) -> Dict[str, int]:
+    cur.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM (
+            SELECT match_id
+            FROM match_result
+            WHERE match_id IS NOT NULL AND match_id <> ''
+            UNION
+            SELECT match_id
+            FROM match_schedule
+            WHERE match_id IS NOT NULL AND match_id <> ''
+        ) merged
+        """
+    )
+    total_matches = safe_int((cur.fetchone() or {}).get("total"))
+    cur.execute("SELECT COUNT(*) AS total FROM match_result")
+    result_rows = safe_int((cur.fetchone() or {}).get("total"))
+    cur.execute("SELECT COUNT(*) AS total FROM match_schedule")
+    schedule_rows = safe_int((cur.fetchone() or {}).get("total"))
+    return {
+        "matches": total_matches,
+        "matchResultRows": result_rows,
+        "matchScheduleRows": schedule_rows,
+        "matchRows": result_rows + schedule_rows,
+    }
 
 
 def normalize_schedule_view(value: str) -> str:
@@ -2147,12 +3191,146 @@ def enrich_match_player_avatars(
             player["avatar"] = avatar
 
 
+def build_match_round_events(cur: pymysql.cursors.DictCursor, match_id: str) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    cur.execute(
+        """
+        SELECT
+            map_index,
+            map_name,
+            round_number,
+            round_global_index,
+            event_type,
+            team_side,
+            player_name,
+            related_player_name,
+            weapon,
+            bomb_site,
+            winner_side,
+            win_type,
+            score_ct,
+            score_t,
+            event_text,
+            update_version,
+            raw_event
+        FROM match_result_round_events
+        WHERE match_id = %s
+        ORDER BY map_index ASC, round_number ASC, CAST(update_version AS UNSIGNED) ASC, id ASC
+        """,
+        (match_id,),
+    )
+    rows = list(cur.fetchall() or [])
+    summary = {"eventCount": len(rows), "mapCount": 0, "roundCount": 0, "maps": []}
+    if not rows:
+        return summary, []
+
+    map_blocks: Dict[int, Dict[str, Any]] = {}
+    round_counts: Set[Tuple[int, int]] = set()
+    for row in rows:
+        map_index = safe_int(row.get("map_index"), 0)
+        if map_index <= 0:
+            continue
+        map_name = str(row.get("map_name") or "").strip() or "-"
+        block = map_blocks.get(map_index)
+        if not block:
+            block = {
+                "mapIndex": map_index,
+                "mapName": map_name,
+                "eventCount": 0,
+                "roundLookup": {},
+                "rounds": [],
+            }
+            map_blocks[map_index] = block
+
+        block["eventCount"] += 1
+        round_number = safe_int(row.get("round_number"), 0)
+        if round_number <= 0:
+            continue
+
+        round_counts.add((map_index, round_number))
+        round_block = block["roundLookup"].get(round_number)
+        if not round_block:
+            round_block = {
+                "roundNumber": round_number,
+                "roundGlobalIndex": safe_int(row.get("round_global_index"), 0),
+                "winnerSide": "",
+                "winType": "",
+                "scoreCt": None,
+                "scoreT": None,
+                "events": [],
+            }
+            block["roundLookup"][round_number] = round_block
+            block["rounds"].append(round_block)
+
+        if str(row.get("event_type") or "").strip() == "round_end":
+            round_block["winnerSide"] = str(row.get("winner_side") or "").strip()
+            round_block["winType"] = str(row.get("win_type") or "").strip()
+            round_block["scoreCt"] = safe_int(row.get("score_ct")) if row.get("score_ct") is not None else None
+            round_block["scoreT"] = safe_int(row.get("score_t")) if row.get("score_t") is not None else None
+
+        round_event = {
+            "eventType": str(row.get("event_type") or "").strip(),
+            "teamSide": str(row.get("team_side") or "").strip(),
+            "playerName": str(row.get("player_name") or "").strip(),
+            "relatedPlayerName": str(row.get("related_player_name") or "").strip(),
+            "weapon": str(row.get("weapon") or "").strip(),
+            "bombSite": str(row.get("bomb_site") or "").strip(),
+            "eventText": str(row.get("event_text") or "").strip(),
+            "updateVersion": str(row.get("update_version") or "").strip(),
+            "assisterName": "",
+        }
+        # extract assist info from raw_event JSON
+        raw_val = row.get("raw_event")
+        if raw_val:
+            try:
+                raw_obj = json.loads(raw_val) if isinstance(raw_val, str) else raw_val
+                log_info = raw_obj.get("log_info") if isinstance(raw_obj, dict) else {}
+                assist = log_info.get("assist") if isinstance(log_info, dict) else None
+                if isinstance(assist, dict):
+                    assister = str(assist.get("assister_nick") or assist.get("assister_name") or "").strip()
+                    if assister:
+                        round_event["assisterName"] = assister
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
+
+        round_block["events"].append(round_event)
+
+    round_events: List[Dict[str, Any]] = []
+    for map_index in sorted(map_blocks.keys()):
+        block = map_blocks[map_index]
+        rounds = sorted(block["rounds"], key=lambda item: safe_int(item.get("roundNumber"), 0))
+        round_events.append(
+            {
+                "mapIndex": block["mapIndex"],
+                "mapName": block["mapName"],
+                "eventCount": block["eventCount"],
+                "roundCount": len(rounds),
+                "rounds": rounds,
+            }
+        )
+        summary["maps"].append(
+            {
+                "mapIndex": block["mapIndex"],
+                "mapName": block["mapName"],
+                "eventCount": block["eventCount"],
+                "roundCount": len(rounds),
+            }
+        )
+
+    # Exclude maps that have events but no valid rounds (missing round_start data from source)
+    round_events = [m for m in round_events if m["roundCount"] > 0]
+    summary["maps"] = [m for m in summary["maps"] if m["roundCount"] > 0]
+    summary["mapCount"] = len(round_events)
+    summary["roundCount"] = len(round_counts)
+    return summary, round_events
+
+
 def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[str, Any]:
     table_cache: Set[str] = set()
     has_detail_table = table_exists(cur, "match_result_detail", table_cache)
     has_player_stats_table = table_exists(cur, "match_result_player_stats", table_cache)
     has_map_stats_table = table_exists(cur, "match_result_map_stats", table_cache)
     has_map_player_stats_table = table_exists(cur, "match_result_map_player_stats", table_cache)
+    has_round_events_table = table_exists(cur, "match_result_round_events", table_cache)
 
     merged_sources: List[str] = []
     params: List[Any] = []
@@ -2393,12 +3571,17 @@ def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[s
         map_rows = list(cur.fetchall())
         if map_rows:
             rebuilt_maps: List[Dict[str, Any]] = []
+            seen_map_indexes: set[int] = set()
             for idx, map_row in enumerate(map_rows, start=1):
+                map_index = safe_int(map_row.get("map_index"), idx)
+                if map_index in seen_map_indexes:
+                    continue
+                seen_map_indexes.add(map_index)
                 t1_score_raw = map_row.get("team1_score")
                 t2_score_raw = map_row.get("team2_score")
                 rebuilt_maps.append(
                     {
-                        "index": safe_int(map_row.get("map_index"), idx),
+                        "index": map_index,
                         "map": str(map_row.get("map_name") or "").strip() or "-",
                         "team1Score": safe_int(t1_score_raw) if t1_score_raw is not None else None,
                         "team2Score": safe_int(t2_score_raw) if t2_score_raw is not None else None,
@@ -2601,6 +3784,21 @@ def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[s
         if safe_int(block.get("mapIndex"), 0) in visible_map_indexes
     ]
 
+    round_event_summary = {"eventCount": 0, "mapCount": 0, "roundCount": 0, "maps": []}
+    round_events: List[Dict[str, Any]] = []
+    if has_round_events_table:
+        round_event_summary, round_events = build_match_round_events(cur, match_id)
+
+    bilibili_replay = build_bilibili_replay_info(
+        tournament_name=str(event_name),
+        match_id=str(row.get("match_id") or match_id),
+        tier=tier,
+        team_a=str(row.get("team1_name") or row.get("team1") or "").strip(),
+        team_b=str(row.get("team2_name") or row.get("team2") or "").strip(),
+        match_date=safe_date(row.get("match_time")),
+        maps=maps,
+    )
+
     return {
         "matchId": str(row.get("match_id") or match_id),
         "exists": True,
@@ -2616,6 +3814,11 @@ def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[s
             "logo": str(row.get("event_logo") or "").strip(),
             "tier": tier,
             "region": region,
+            "bilibiliLive": build_bilibili_live_info(
+                tournament_name=str(event_name),
+                match_id=str(row.get("match_id") or match_id),
+                tier=tier,
+            ),
         },
         "teamA": {
             "id": str(row.get("team1_id") or "").strip(),
@@ -2629,10 +3832,18 @@ def build_match_detail(cur: pymysql.cursors.DictCursor, match_id: str) -> Dict[s
             "logo": str(row.get("team2_logo") or "").strip(),
             "score": safe_int(s2) if s2 is not None else None,
         },
+        "bilibiliLive": build_bilibili_live_info(
+            tournament_name=str(event_name),
+            match_id=str(row.get("match_id") or match_id),
+            tier=tier,
+        ),
+        "bilibiliReplay": bilibili_replay,
         "maps": maps,
         "rawNote": str(row.get("bout_details") or "").strip(),
         "playerStats": player_stats,
         "mapPlayerStats": map_player_stats,
+        "roundEventSummary": round_event_summary,
+        "roundEvents": round_events,
         "detailMetrics": {
             "analysisSuccess": safe_int(row.get("analysis_success"), 0),
             "dataSuccess": safe_int(row.get("data_success"), 0),
@@ -2823,6 +4034,9 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
         row = cur.fetchone()
         if row:
             detail["basic"] = json_row(row)
+            inferred_role = infer_cs_player_role(row)
+            detail["basic"]["position"] = detail["basic"].get("position") or inferred_role
+            detail["basic"]["positions"] = detail["basic"].get("positions") or inferred_role
 
     if not detail["basic"] and table_exists(cur, "team_player_relation", table_cache):
         cur.execute(
@@ -2842,6 +4056,9 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
         row = cur.fetchone()
         if row:
             detail["basic"] = json_row(row)
+            inferred_role = infer_cs_player_role(row)
+            detail["basic"]["position"] = detail["basic"].get("position") or inferred_role
+            detail["basic"]["positions"] = detail["basic"].get("positions") or inferred_role
 
     if not detail["basic"] and table_exists(cur, "match_result_player_stats", table_cache):
         cur.execute(
@@ -2873,6 +4090,9 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
                 if item.get(key) not in (None, ""):
                     item[key] = format_metric(item.get(key), 2)
             item["avatar"] = ""
+            inferred_role = infer_cs_player_role(item)
+            item["position"] = item.get("position") or inferred_role
+            item["positions"] = item.get("positions") or inferred_role
             detail["basic"] = item
 
     if not detail["basic"] and table_exists(cur, "match_result_map_player_stats", table_cache):
@@ -2904,6 +4124,9 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
                 if item.get(key) not in (None, ""):
                     item[key] = format_metric(item.get(key), 2)
             item["avatar"] = ""
+            inferred_role = infer_cs_player_role(item)
+            item["position"] = item.get("position") or inferred_role
+            item["positions"] = item.get("positions") or inferred_role
             detail["basic"] = item
 
     if table_exists(cur, "player_stats_summary", table_cache):
@@ -3147,6 +4370,32 @@ def build_player_detail(cur: pymysql.cursors.DictCursor, player_id: str) -> Dict
             matches.append(item)
         detail["recentMatches"] = matches
 
+    if detail["recentMatches"] and table_exists(cur, "match_result_map_player_stats", table_cache):
+        match_ids = [str(row.get("match_id") or "").strip() for row in detail["recentMatches"]]
+        match_ids = [mid for mid in match_ids if mid]
+        if match_ids:
+            placeholders = ",".join(["%s"] * len(match_ids))
+            cur.execute(
+                f"""
+                SELECT
+                    match_id,
+                    AVG(NULLIF(rating, 0)) AS avg_rating,
+                    AVG(NULLIF(adr, 0)) AS avg_adr,
+                    AVG(NULLIF(kd_rate, 0)) AS avg_kd
+                FROM match_result_map_player_stats
+                WHERE player_id = %s
+                  AND match_id IN ({placeholders})
+                GROUP BY match_id
+                """,
+                (player_id, *match_ids),
+            )
+            metric_by_match = {str(row.get("match_id") or "").strip(): row for row in cur.fetchall()}
+            for item in detail["recentMatches"]:
+                metric_row = metric_by_match.get(str(item.get("match_id") or "").strip()) or {}
+                item["rating"] = format_metric(metric_row.get("avg_rating"))
+                item["adr"] = format_metric(metric_row.get("avg_adr"), 1)
+                item["kd"] = format_metric(metric_row.get("avg_kd"))
+
     if not detail["recentMatches"] and table_exists(cur, "match_result_player_stats", table_cache):
         cur.execute(
             """
@@ -3388,14 +4637,31 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
                 rating,
                 map_num AS mapNum,
                 map_win_rate AS mapWinRate,
+                map_win_loss AS mapWinLoss,
                 win_rate AS winRate,
+                game_played AS gamePlayed,
                 kd,
+                kd_rate AS kdRate,
+                kd_diff AS kdDiff,
                 avg_kill AS avgKill,
                 avg_death AS avgDeath,
                 avg_assist AS avgAssist,
+                avg_round AS avgRound,
+                total_kill AS totalKill,
+                total_death AS totalDeath,
+                total_assist AS totalAssist,
+                total_round AS totalRound,
                 first_kill_rate AS firstKillRate,
+                first_kill AS firstKill,
+                first_death_rate AS firstDeathRate,
+                first_five_win_rate AS firstFiveWinRate,
+                first_ten_win_rate AS firstTenWinRate,
                 ct_win_rate AS ctWinRate,
+                ct_win_round AS ctWinRound,
                 t_win_rate AS tWinRate,
+                t_win_round AS tWinRound,
+                ct_first_win_rate AS ctFirstWinRate,
+                t_first_win_rate AS tFirstWinRate,
                 global_rank AS globalRank,
                 valve_rank AS valveRank,
                 valve_point AS valvePoint,
@@ -3466,6 +4732,11 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
             )
         for row in cur.fetchall():
             item = json_row(row)
+            item["position"] = item.get("position") or infer_cs_player_role({
+                "player_name": item.get("name"),
+                "position": item.get("position"),
+                "rating": item.get("rating"),
+            })
             pid = str(item.get("playerId") or "").strip()
             if not pid or pid in seen_player_ids:
                 continue
@@ -3515,6 +4786,11 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
             if len(members) >= 5:
                 break
             item = json_row(row)
+            item["position"] = item.get("position") or infer_cs_player_role({
+                "player_name": item.get("name"),
+                "position": item.get("position"),
+                "rating": item.get("rating"),
+            })
             pid = str(item.get("playerId") or "").strip()
             if not pid or pid in seen_player_ids:
                 continue
@@ -3542,25 +4818,6 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
             FROM match_result mr
             """
         )
-    if table_exists(cur, "match_schedule", table_cache):
-        merged_sources.append(
-            """
-            SELECT
-                ms.match_id,
-                ms.event_id,
-                ms.match_time,
-                ms.bo,
-                ms.team1_id,
-                ms.team1,
-                ms.team2_id,
-                ms.team2,
-                ms.score1,
-                ms.score2,
-                1 AS source_order
-            FROM match_schedule ms
-            """
-        )
-
     if merged_sources:
         where_parts: List[str] = []
         params: List[Any] = []
@@ -3624,6 +4881,8 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
             LEFT JOIN team_name_best tb1_name ON LOWER(TRIM(tb1_name.team_name)) = LOWER(TRIM(dedup.team1))
             LEFT JOIN team_name_best tb2_name ON LOWER(TRIM(tb2_name.team_name)) = LOWER(TRIM(dedup.team2))
             WHERE dedup.rn = 1
+              AND dedup.score1 IS NOT NULL
+              AND dedup.score2 IS NOT NULL
               AND ({' OR '.join(where_parts)})
             ORDER BY dedup.match_time DESC
             LIMIT 30
@@ -3650,19 +4909,17 @@ def build_team_detail(cur: pymysql.cursors.DictCursor, team_key: str) -> Dict[st
                 opp_logo = str(row_data.get("team2_logo") or "") if is_left else str(row_data.get("team1_logo") or "")
                 s1 = row.get("score1")
                 s2 = row.get("score2")
-                if s1 is not None and s2 is not None:
-                    my_score = safe_int(s1) if is_left else safe_int(s2)
-                    opp_score = safe_int(s2) if is_left else safe_int(s1)
-                    score_text = f"{my_score}-{opp_score}"
-                    if my_score > opp_score:
-                        result = "胜"
-                    elif my_score < opp_score:
-                        result = "负"
-                    else:
-                        result = "平"
+                if s1 is None or s2 is None:
+                    continue
+                my_score = safe_int(s1) if is_left else safe_int(s2)
+                opp_score = safe_int(s2) if is_left else safe_int(s1)
+                score_text = f"{my_score}-{opp_score}"
+                if my_score > opp_score:
+                    result = "胜"
+                elif my_score < opp_score:
+                    result = "负"
                 else:
-                    score_text = "-"
-                    result = "-"
+                    result = "平"
 
                 matches.append(
                     {
@@ -3689,6 +4946,7 @@ def build_dataset() -> Dict[str, Any]:
             stat_map = latest_stat_rows(cur)
             tournaments = build_tournaments(cur)
             matches = build_matches(cur)
+            match_totals = build_match_totals(cur)
             players = build_players(cur, rank_rows)
 
     leaderboard = build_leaderboard(rank_rows, stat_map)
@@ -3713,7 +4971,7 @@ def build_dataset() -> Dict[str, Any]:
 
     metrics = [
         {"label": "鏀跺綍璧涗簨", "value": str(len(tournaments)), "detail": "From esports.event_basic + match tables"},
-        {"label": "鏀跺綍姣旇禌", "value": str(len(matches)), "detail": "Merged schedule and results"},
+        {"label": "鏀跺綍姣旇禌", "value": str(match_totals.get("matches", len(matches))), "detail": "Distinct match_id from match_schedule + match_result"},
         {"label": "鎴橀槦瑙勬ā", "value": str(len(teams)), "detail": "Latest snapshot by team_id"},
         {"label": "閫夋墜鏍锋湰", "value": str(len(players)), "detail": "Grouped by player_id"},
     ]
@@ -3727,7 +4985,7 @@ def build_dataset() -> Dict[str, Any]:
         {"key": "褰撳墠椤圭洰", "value": "CS2"},
         {"key": "最新同步", "value": updated_at},
         {"key": "璧涗簨鎬婚噺", "value": f"{len(tournaments)}"},
-        {"key": "姣旇禌鎬婚噺", "value": f"{len(matches)}"},
+        {"key": "姣旇禌鎬婚噺", "value": f"{match_totals.get('matches', len(matches))}"},
         {"key": "鎴橀槦鎬婚噺", "value": f"{len(teams)}"},
         {"key": "閫夋墜鎬婚噺", "value": f"{len(players)}"},
     ]
@@ -3741,6 +4999,10 @@ def build_dataset() -> Dict[str, Any]:
         "leaderboard": leaderboard,
         "tournaments": tournaments,
         "matches": matches,
+        "totals": {
+            **match_totals,
+            "displayMatches": len(matches),
+        },
         "teams": teams,
         "players": players,
         "analysis": {
@@ -3846,6 +5108,111 @@ def cs2_match_detail(match_id: str) -> Dict[str, Any]:
     return {"success": True, "data": detail}
 
 
+# ── Round Event Scrape Config ──────────────────────────────────────────
+
+ROUND_EVENT_CONFIG_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS round_event_scrape_config (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    target_type ENUM('tournament', 'match') NOT NULL DEFAULT 'tournament',
+    target_value VARCHAR(255) NOT NULL,
+    label VARCHAR(255) DEFAULT '',
+    enabled TINYINT NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_target (target_type, target_value)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+"""
+
+DEFAULT_ROUND_EVENT_CONFIGS = [
+    ("tournament", "%PGL%阿斯塔纳%2026%", "PGL 阿斯塔纳 2026"),
+    ("tournament", "%IEM%亚特兰大%2026%", "IEM 亚特兰大 2026"),
+]
+
+
+def ensure_round_event_config_table(cur) -> None:
+    cur.execute(ROUND_EVENT_CONFIG_TABLE_SQL)
+    for target_type, target_value, label in DEFAULT_ROUND_EVENT_CONFIGS:
+        cur.execute(
+            "INSERT IGNORE INTO round_event_scrape_config (target_type, target_value, label) VALUES (%s, %s, %s)",
+            (target_type, target_value, label),
+        )
+
+
+@router.get("/api/cs2/admin/round-event-config")
+def get_round_event_config() -> Dict[str, Any]:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            ensure_round_event_config_table(cur)
+            cur.execute(
+                "SELECT id, target_type, target_value, label, enabled, created_at "
+                "FROM round_event_scrape_config ORDER BY id"
+            )
+            rows = cur.fetchall()
+            items = [
+                {
+                    "id": row[0],
+                    "targetType": row[1],
+                    "targetValue": row[2],
+                    "label": row[3] or "",
+                    "enabled": bool(row[4]),
+                    "createdAt": str(row[5]) if row[5] else "",
+                }
+                for row in rows
+            ]
+    return {"success": True, "data": items}
+
+
+@router.post("/api/cs2/admin/round-event-config")
+def add_round_event_config(body: Dict[str, Any]) -> Dict[str, Any]:
+    target_type = str(body.get("targetType") or body.get("target_type") or "tournament").strip()
+    if target_type not in ("tournament", "match"):
+        return {"success": False, "error": "targetType 必须为 tournament 或 match"}
+    target_value = str(body.get("targetValue") or body.get("target_value") or "").strip()
+    if not target_value:
+        return {"success": False, "error": "targetValue 不能为空"}
+    label = str(body.get("label") or "").strip()
+
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            ensure_round_event_config_table(cur)
+            try:
+                cur.execute(
+                    "INSERT INTO round_event_scrape_config (target_type, target_value, label) VALUES (%s, %s, %s)",
+                    (target_type, target_value, label),
+                )
+                conn.commit()
+                new_id = cur.lastrowid
+                return {"success": True, "data": {"id": new_id, "targetType": target_type, "targetValue": target_value, "label": label}}
+            except Exception as exc:
+                return {"success": False, "error": str(exc)}
+
+
+@router.delete("/api/cs2/admin/round-event-config/{config_id}")
+def delete_round_event_config(config_id: int) -> Dict[str, Any]:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            ensure_round_event_config_table(cur)
+            cur.execute("DELETE FROM round_event_scrape_config WHERE id = %s", (config_id,))
+            conn.commit()
+            return {"success": True, "data": {"deleted": cur.rowcount > 0}}
+
+
+@router.post("/api/cs2/admin/round-event-config/{config_id}/toggle")
+def toggle_round_event_config(config_id: int) -> Dict[str, Any]:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            ensure_round_event_config_table(cur)
+            cur.execute(
+                "UPDATE round_event_scrape_config SET enabled = NOT enabled WHERE id = %s",
+                (config_id,),
+            )
+            conn.commit()
+            return {"success": True, "data": {"toggled": cur.rowcount > 0}}
+
+
+@router.post("/api/cs2/admin/sync-bilibili-index")
+def sync_bilibili_index() -> Dict[str, Any]:
+    new_index = refresh_bilibili_official_index()
+    return {"ok": True, "count": len(new_index), "index": new_index}
 
 
 app.include_router(router)

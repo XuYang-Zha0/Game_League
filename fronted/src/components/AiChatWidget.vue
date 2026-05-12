@@ -17,7 +17,171 @@ const isStreaming = ref(false)
 const messages = ref([])
 const chatBodyRef = ref(null)
 const inputRef = ref(null)
+const panelRef = ref(null)
 let abortController = null
+
+const FAB_SIZE = 52
+
+// ── drag state ──
+const panelPos = ref({ x: null, y: null })
+let dragState = null
+let fabDragState = null
+let suppressFabClick = false
+
+const clampPanelPos = (x, y, size = panelSize.value) => {
+  if (typeof window === 'undefined') return { x, y }
+  const maxX = Math.max(8, window.innerWidth - size.w - 8)
+  const maxY = Math.max(8, window.innerHeight - size.h - 8)
+  return {
+    x: Math.max(8, Math.min(maxX, x)),
+    y: Math.max(8, Math.min(maxY, y)),
+  }
+}
+
+const ensurePanelPosition = async () => {
+  if (panelPos.value.x != null) return
+  await nextTick()
+  const rect = panelRef.value?.getBoundingClientRect()
+  const w = rect?.width || panelSize.value.w
+  const h = rect?.height || panelSize.value.h
+  panelPos.value = clampPanelPos(window.innerWidth - w - 24, window.innerHeight - h - 24, { w, h })
+}
+
+const clampFabPos = (x, y) => clampPanelPos(x, y, { w: FAB_SIZE, h: FAB_SIZE })
+
+const fabPosFromPanel = () => {
+  if (panelPos.value.x == null) return null
+  return clampFabPos(
+    panelPos.value.x + panelSize.value.w - FAB_SIZE,
+    panelPos.value.y + panelSize.value.h - FAB_SIZE,
+  )
+}
+
+const panelPosFromFab = (x, y) => clampPanelPos(
+  x - panelSize.value.w + FAB_SIZE,
+  y - panelSize.value.h + FAB_SIZE,
+)
+
+const startDrag = (e) => {
+  if (e.target.closest('button, input, .ai-chat-resize')) return
+  const rect = panelRef.value?.getBoundingClientRect()
+  if (!rect) return
+  dragState = { startX: e.clientX, startY: e.clientY, left: rect.left, top: rect.top }
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  e.preventDefault()
+}
+
+const onDrag = (e) => {
+  if (!dragState) return
+  const dx = e.clientX - dragState.startX
+  const dy = e.clientY - dragState.startY
+  panelPos.value = clampPanelPos(dragState.left + dx, dragState.top + dy)
+}
+
+const stopDrag = () => {
+  dragState = null
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+const startFabDrag = (e) => {
+  if (e.button !== 0) return
+  if (panelPos.value.x == null) {
+    const initialFab = clampFabPos(window.innerWidth - FAB_SIZE - 24, window.innerHeight - FAB_SIZE - 24)
+    panelPos.value = panelPosFromFab(initialFab.x, initialFab.y)
+  }
+  const fabPos = fabPosFromPanel()
+  fabDragState = {
+    startX: e.clientX,
+    startY: e.clientY,
+    left: fabPos?.x || window.innerWidth - FAB_SIZE - 24,
+    top: fabPos?.y || window.innerHeight - FAB_SIZE - 24,
+    moved: false,
+  }
+  document.addEventListener('mousemove', onFabDrag)
+  document.addEventListener('mouseup', stopFabDrag)
+}
+
+const onFabDrag = (e) => {
+  if (!fabDragState) return
+  const dx = e.clientX - fabDragState.startX
+  const dy = e.clientY - fabDragState.startY
+  if (Math.abs(dx) + Math.abs(dy) > 4) fabDragState.moved = true
+  const fabPos = clampFabPos(fabDragState.left + dx, fabDragState.top + dy)
+  panelPos.value = panelPosFromFab(fabPos.x, fabPos.y)
+}
+
+const stopFabDrag = () => {
+  suppressFabClick = !!fabDragState?.moved
+  fabDragState = null
+  document.removeEventListener('mousemove', onFabDrag)
+  document.removeEventListener('mouseup', stopFabDrag)
+  if (suppressFabClick) {
+    window.setTimeout(() => {
+      suppressFabClick = false
+    }, 0)
+  }
+}
+
+// ── resize state ──
+const panelSize = ref({ w: 400, h: 540 })
+let resizeState = null
+
+const startResize = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  resizeState = { startX: e.clientX, startY: e.clientY, w: panelSize.value.w, h: panelSize.value.h }
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', stopResize)
+}
+
+const onResize = (e) => {
+  if (!resizeState) return
+  const dw = e.clientX - resizeState.startX
+  const dh = e.clientY - resizeState.startY
+  const size = {
+    w: Math.max(320, Math.min(900, resizeState.w + dw)),
+    h: Math.max(360, Math.min(900, resizeState.h + dh)),
+  }
+  panelSize.value = size
+  if (panelPos.value.x != null) {
+    panelPos.value = clampPanelPos(panelPos.value.x, panelPos.value.y, size)
+  }
+}
+
+const stopResize = () => {
+  resizeState = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', stopResize)
+}
+
+const panelStyle = computed(() => {
+  const style = {
+    position: 'fixed',
+    width: panelSize.value.w + 'px',
+    height: panelSize.value.h + 'px',
+  }
+  if (panelPos.value.x != null) {
+    style.left = panelPos.value.x + 'px'
+    style.top = panelPos.value.y + 'px'
+    style.right = 'auto'
+    style.bottom = 'auto'
+  }
+  return style
+})
+
+const fabStyle = computed(() => {
+  const pos = fabPosFromPanel()
+  if (!pos) return {}
+  return {
+    position: 'fixed',
+    left: pos.x + 'px',
+    top: pos.y + 'px',
+    right: 'auto',
+    bottom: 'auto',
+  }
+})
 
 const gameLabel = computed(() => {
   const map = { cs2: 'CS2', valorant: '无畏契约', lol: '英雄联盟' }
@@ -134,11 +298,13 @@ const handleKeydown = (e) => {
 }
 
 const toggleChat = () => {
+  if (!isOpen.value && suppressFabClick) return
   isOpen.value = !isOpen.value
   if (isOpen.value && messages.value.length === 0) {
     addMessage('assistant', welcomeText.value)
   }
   if (isOpen.value) {
+    ensurePanelPosition()
     nextTick(() => inputRef.value?.focus())
   }
 }
@@ -150,6 +316,7 @@ const autoAnalyze = async (question, contextOverride) => {
   }
   if (!isOpen.value) {
     isOpen.value = true
+    ensurePanelPosition()
   }
   cancelStream()
   messages.value = []
@@ -170,6 +337,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelStream()
+  stopDrag()
+  stopFabDrag()
+  stopResize()
 })
 
 watch(
@@ -190,14 +360,16 @@ watch(
       v-if="!isOpen"
       class="ai-chat-fab"
       :class="{ configured: isConfigured }"
+      :style="fabStyle"
+      @mousedown="startFabDrag"
       @click="toggleChat"
       title="AI 分析助手"
     >
       <span class="ai-chat-fab-icon">AI</span>
     </button>
 
-    <div v-if="isOpen" class="ai-chat-panel">
-      <div class="ai-chat-header">
+    <div v-if="isOpen" ref="panelRef" class="ai-chat-panel" :style="panelStyle">
+      <div class="ai-chat-header" @mousedown="startDrag">
         <div class="ai-chat-header-left">
           <span class="ai-chat-title">AI 赛事分析</span>
           <span class="ai-chat-game-badge">{{ gameLabel }}</span>
@@ -271,6 +443,11 @@ watch(
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
           </svg>
         </button>
+      </div>
+      <div class="ai-chat-resize" @mousedown="startResize" title="拖动调整大小">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" opacity="0.4">
+          <path d="M11 0v1.5L1.5 11H0v-1.5L9.5 0H11zm0 4v1.5L5.5 11H4l7-7zm0 4v1.5L9.5 11H8l3-3z"/>
+        </svg>
       </div>
     </div>
   </div>
